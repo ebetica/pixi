@@ -24,8 +24,8 @@ pub fn create_named(
     }
 
     let file = open_options.open(path)?;
-    // In a cache shared with a group, give the group access to the file it will become.
-    let _ = shared_cache_group::fix_file(&file, path);
+    // In a shared cache, give the other users access to the file it will become.
+    let _ = shared_cache_perms::fix_file(&file, path);
     Ok(file)
 }
 
@@ -96,8 +96,8 @@ pub fn reopen(file: &File, path: &Path) -> io::Result<File> {
 
 pub fn persist(old_path: &Path, new_path: &Path, overwrite: bool) -> io::Result<()> {
     persist_inner(old_path, new_path, overwrite)?;
-    // The temporary file may have been created outside a cache shared with a group.
-    let _ = shared_cache_group::fix_path(new_path);
+    // The temporary file may have been created outside a shared cache.
+    let _ = shared_cache_perms::fix_path(new_path);
     Ok(())
 }
 

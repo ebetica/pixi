@@ -62,10 +62,10 @@ diff -ruN a/cacache/src/content/write.rs b/cacache/src/content/write.rs
  use ssri::{Algorithm, Integrity, IntegrityOpts};
  use tempfile::NamedTempFile;
  
-+/// `create_dir_all` that, in a cache shared with a group, creates the
-+/// directories group-owned and group-writable.
++/// `create_dir_all` that, in a shared cache, creates the
++/// directories readable and writable by every user.
 +pub(crate) fn shared_dir_all(dir: &Path) -> std::io::Result<()> {
-+    shared_cache_group::create_dir_all(dir, 0o777)
++    shared_cache_perms::create_dir_all(dir, 0o777)
 +}
 +
  /// Like `NamedTempFile::new_in`, but starts at mode 0666 so the umask (not a
@@ -144,7 +144,7 @@ diff -ruN a/cacache/src/index.rs b/cacache/src/index.rs
 -        .append(true)
 -        .open(&bucket)
 -        .with_context(|| format!("Failed to create or open index bucket at {bucket:?}"))?;
-+    let mut buck = shared_cache_group::open(
++    let mut buck = shared_cache_perms::open(
 +        OpenOptions::new().create(true).append(true),
 +        &bucket,
 +        true,
@@ -174,7 +174,7 @@ diff -ruN a/cacache/src/index.rs b/cacache/src/index.rs
 -        .open(&bucket)
 -        .await
 -        .with_context(|| format!("Failed to create or open index bucket at {bucket:?}"))?;
-+    let mut buck = shared_cache_group::open(
++    let mut buck = shared_cache_perms::open(
 +        OpenOptions::new().create(true).append(true),
 +        &bucket,
 +        true,
@@ -195,7 +195,7 @@ diff -ruN a/fs-err/src/file.rs b/fs-err/src/file.rs
 -    fs::File::create(path).map_err(|err| |path| Error::build(err, ErrorKind::CreateFile, path))
 +    let mut options = fs::OpenOptions::new();
 +    options.write(true).create(true).truncate(true);
-+    shared_cache_group::open(&options, path, true, false)
++    shared_cache_perms::open(&options, path, true, false)
 +        .map_err(|err| |path| Error::build(err, ErrorKind::CreateFile, path))
  }
  
@@ -212,7 +212,7 @@ diff -ruN a/fs-err/src/file.rs b/fs-err/src/file.rs
 -        {
 +        let mut options = fs::OpenOptions::new();
 +        options.read(true).write(true).create_new(true);
-+        match shared_cache_group::open(&options, &path, false, true) {
++        match shared_cache_perms::open(&options, &path, false, true) {
              Ok(file) => Ok(File::from_parts(file, path)),
              Err(err) => Err(Error::build(err, ErrorKind::CreateFile, path)),
          }
@@ -227,7 +227,7 @@ diff -ruN a/fs-err/src/lib.rs b/fs-err/src/lib.rs
 -        .map_err(|source| SourceDestError::build(source, SourceDestErrorKind::Copy, from, to))
 +    let copied = fs::copy(from, to)
 +        .map_err(|source| SourceDestError::build(source, SourceDestErrorKind::Copy, from, to))?;
-+    let _ = shared_cache_group::fix_path(to);
++    let _ = shared_cache_perms::fix_path(to);
 +    Ok(copied)
  }
  
@@ -237,7 +237,7 @@ diff -ruN a/fs-err/src/lib.rs b/fs-err/src/lib.rs
  {
      let path = path.as_ref();
 -    fs::create_dir(path).map_err(|source| Error::build(source, ErrorKind::CreateDir, path))
-+    shared_cache_group::create_dir(path, 0o777)
++    shared_cache_perms::create_dir(path, 0o777)
 +        .map_err(|source| Error::build(source, ErrorKind::CreateDir, path))
  }
  
@@ -247,7 +247,7 @@ diff -ruN a/fs-err/src/lib.rs b/fs-err/src/lib.rs
  {
      let path = path.as_ref();
 -    fs::create_dir_all(path).map_err(|source| Error::build(source, ErrorKind::CreateDir, path))
-+    shared_cache_group::create_dir_all(path, 0o777)
++    shared_cache_perms::create_dir_all(path, 0o777)
 +        .map_err(|source| Error::build(source, ErrorKind::CreateDir, path))
  }
  
@@ -259,7 +259,7 @@ diff -ruN a/fs-err/src/lib.rs b/fs-err/src/lib.rs
 -        .map_err(|source| SourceDestError::build(source, SourceDestErrorKind::Rename, from, to))
 +        .map_err(|source| SourceDestError::build(source, SourceDestErrorKind::Rename, from, to))?;
 +    // Whatever was moved into a shared cache may have been written elsewhere.
-+    let _ = shared_cache_group::fix_tree(to);
++    let _ = shared_cache_perms::fix_tree(to);
 +    Ok(())
  }
  
@@ -270,7 +270,7 @@ diff -ruN a/fs-err/src/lib.rs b/fs-err/src/lib.rs
      fs::set_permissions(path, perm)
 -        .map_err(|source| Error::build(source, ErrorKind::SetPermissions, path))
 +        .map_err(|source| Error::build(source, ErrorKind::SetPermissions, path))?;
-+    let _ = shared_cache_group::fix_path(path);
++    let _ = shared_cache_perms::fix_path(path);
 +    Ok(())
  }
  
@@ -286,7 +286,7 @@ diff -ruN a/fs-err/src/open_options.rs b/fs-err/src/open_options.rs
 +pub struct OpenOptions {
 +    options: fs::OpenOptions,
 +    // Mirrors of the creation flags, which `fs::OpenOptions` does not expose;
-+    // `shared_cache_group::open` needs them.
++    // `shared_cache_perms::open` needs them.
 +    create: bool,
 +    create_new: bool,
 +}
@@ -362,7 +362,7 @@ diff -ruN a/fs-err/src/open_options.rs b/fs-err/src/open_options.rs
      {
          let path = path.into();
 -        match self.0.open(&path) {
-+        match shared_cache_group::open(&self.options, &path, self.create, self.create_new) {
++        match shared_cache_perms::open(&self.options, &path, self.create, self.create_new) {
              Ok(file) => Ok(crate::File::from_parts(file, path)),
              Err(source) => Err(Error::build(source, ErrorKind::OpenFile, path)),
          }
@@ -403,7 +403,7 @@ diff -ruN a/fs-err/src/tokio/dir_builder.rs b/fs-err/src/tokio/dir_builder.rs
  #[cfg_attr(docsrs, doc(cfg(feature = "tokio")))]
  pub struct DirBuilder {
      inner: tokio::fs::DirBuilder,
-+    // Mirrors for `shared_cache_group`, which `tokio::fs::DirBuilder` does not expose.
++    // Mirrors for `shared_cache_perms`, which `tokio::fs::DirBuilder` does not expose.
 +    recursive: bool,
 +    mode: Option<u32>,
  }
@@ -421,12 +421,12 @@ diff -ruN a/fs-err/src/tokio/dir_builder.rs b/fs-err/src/tokio/dir_builder.rs
      /// Wrapper around [`tokio::fs::DirBuilder::create`].
      pub async fn create(&self, path: impl AsRef<Path>) -> io::Result<()> {
          let path = path.as_ref();
-+        if shared_cache_group::is_active() {
++        if shared_cache_perms::is_active() {
 +            let mode = self.mode.unwrap_or(0o777);
 +            let result = if self.recursive {
-+                shared_cache_group::create_dir_all(path, mode)
++                shared_cache_perms::create_dir_all(path, mode)
 +            } else {
-+                shared_cache_group::create_dir(path, mode)
++                shared_cache_perms::create_dir(path, mode)
 +            };
 +            return result.map_err(|err| Error::build(err, ErrorKind::CreateDir, path));
 +        }
@@ -448,10 +448,10 @@ diff -ruN a/fs-err/src/tokio/file.rs b/fs-err/src/tokio/file.rs
      /// Wrapper for [`tokio::fs::File::create`].
      pub async fn create(path: impl Into<PathBuf>) -> io::Result<File> {
          let path = path.into();
-+        if shared_cache_group::applies_to(&path) {
++        if shared_cache_perms::applies_to(&path) {
 +            let mut options = std::fs::OpenOptions::new();
 +            options.write(true).create(true).truncate(true);
-+            return match shared_cache_group::open(&options, &path, true, false) {
++            return match shared_cache_perms::open(&options, &path, true, false) {
 +                Ok(f) => Ok(File::from_parts(TokioFile::from_std(f), path)),
 +                Err(err) => Err(Error::build(err, ErrorKind::CreateFile, &path)),
 +            };
@@ -463,10 +463,10 @@ diff -ruN a/fs-err/src/tokio/file.rs b/fs-err/src/tokio/file.rs
      /// Wrapper for [`tokio::fs::File::create_new`].
      pub async fn create_new(path: impl Into<PathBuf>) -> Result<Self, io::Error> {
          let path = path.into();
-+        if shared_cache_group::applies_to(&path) {
++        if shared_cache_perms::applies_to(&path) {
 +            let mut options = std::fs::OpenOptions::new();
 +            options.read(true).write(true).create_new(true);
-+            return match shared_cache_group::open(&options, &path, false, true) {
++            return match shared_cache_perms::open(&options, &path, false, true) {
 +                Ok(f) => Ok(File::from_parts(TokioFile::from_std(f), path)),
 +                Err(err) => Err(Error::build(err, ErrorKind::CreateFile, path)),
 +            };
@@ -486,7 +486,7 @@ diff -ruN a/fs-err/src/tokio/mod.rs b/fs-err/src/tokio/mod.rs
          .await
 -        .map_err(|err| SourceDestError::build(err, SourceDestErrorKind::Copy, from, to))
 +        .map_err(|err| SourceDestError::build(err, SourceDestErrorKind::Copy, from, to))?;
-+    let _ = shared_cache_group::fix_path(to);
++    let _ = shared_cache_perms::fix_path(to);
 +    Ok(copied)
  }
  
@@ -495,8 +495,8 @@ diff -ruN a/fs-err/src/tokio/mod.rs b/fs-err/src/tokio/mod.rs
  #[cfg_attr(docsrs, doc(cfg(feature = "tokio")))]
  pub async fn create_dir(path: impl AsRef<Path>) -> io::Result<()> {
      let path = path.as_ref();
-+    if shared_cache_group::applies_to(path) {
-+        return shared_cache_group::create_dir(path, 0o777)
++    if shared_cache_perms::applies_to(path) {
++        return shared_cache_perms::create_dir(path, 0o777)
 +            .map_err(|err| Error::build(err, ErrorKind::CreateDir, path));
 +    }
      tokio::fs::create_dir(path)
@@ -506,8 +506,8 @@ diff -ruN a/fs-err/src/tokio/mod.rs b/fs-err/src/tokio/mod.rs
  #[cfg_attr(docsrs, doc(cfg(feature = "tokio")))]
  pub async fn create_dir_all(path: impl AsRef<Path>) -> io::Result<()> {
      let path = path.as_ref();
-+    if shared_cache_group::is_active() {
-+        return shared_cache_group::create_dir_all(path, 0o777)
++    if shared_cache_perms::is_active() {
++        return shared_cache_perms::create_dir_all(path, 0o777)
 +            .map_err(|err| Error::build(err, ErrorKind::CreateDir, path));
 +    }
      tokio::fs::create_dir_all(path)
@@ -520,7 +520,7 @@ diff -ruN a/fs-err/src/tokio/mod.rs b/fs-err/src/tokio/mod.rs
 -        .map_err(|err| SourceDestError::build(err, SourceDestErrorKind::Rename, from, to))
 +        .map_err(|err| SourceDestError::build(err, SourceDestErrorKind::Rename, from, to))?;
 +    // Whatever was moved into a shared cache may have been written elsewhere.
-+    let _ = shared_cache_group::fix_tree(to);
++    let _ = shared_cache_perms::fix_tree(to);
 +    Ok(())
  }
  
@@ -531,7 +531,7 @@ diff -ruN a/fs-err/src/tokio/mod.rs b/fs-err/src/tokio/mod.rs
          .await
 -        .map_err(|err| Error::build(err, ErrorKind::SetPermissions, path))
 +        .map_err(|err| Error::build(err, ErrorKind::SetPermissions, path))?;
-+    let _ = shared_cache_group::fix_path(path);
++    let _ = shared_cache_perms::fix_path(path);
 +    Ok(())
  }
  
@@ -542,7 +542,7 @@ diff -ruN a/fs-err/src/tokio/mod.rs b/fs-err/src/tokio/mod.rs
          .await
 -        .map_err(|err| Error::build(err, ErrorKind::Write, path))
 +        .map_err(|err| Error::build(err, ErrorKind::Write, path))?;
-+    let _ = shared_cache_group::fix_path(path);
++    let _ = shared_cache_perms::fix_path(path);
 +    Ok(())
  }
 diff -ruN a/fs-err/src/tokio/open_options.rs b/fs-err/src/tokio/open_options.rs
@@ -558,7 +558,7 @@ diff -ruN a/fs-err/src/tokio/open_options.rs b/fs-err/src/tokio/open_options.rs
  pub struct OpenOptions {
      tokio: TokioOpenOptions,
 +    // A copy of the options as `std::fs::OpenOptions` plus the creation flags,
-+    // for `shared_cache_group::open` (`tokio`'s options cannot be read back).
++    // for `shared_cache_perms::open` (`tokio`'s options cannot be read back).
 +    // `None` when constructed from `tokio::fs::OpenOptions`.
 +    std: Option<std::fs::OpenOptions>,
 +    create: bool,
@@ -642,8 +642,8 @@ diff -ruN a/fs-err/src/tokio/open_options.rs b/fs-err/src/tokio/open_options.rs
      /// Wrapper for [`tokio::fs::OpenOptions::open`].
      pub async fn open(&self, path: impl AsRef<Path>) -> io::Result<File> {
          let path = path.as_ref();
-+        if let Some(std) = self.std.as_ref().filter(|_| shared_cache_group::applies_to(path)) {
-+            return shared_cache_group::open(std, path, self.create, self.create_new)
++        if let Some(std) = self.std.as_ref().filter(|_| shared_cache_perms::applies_to(path)) {
++            return shared_cache_perms::open(std, path, self.create, self.create_new)
 +                .map(|f| File::from_parts(tokio::fs::File::from_std(f), path))
 +                .map_err(|err| Error::build(err, ErrorKind::OpenFile, path));
 +        }
@@ -715,8 +715,8 @@ diff -ruN a/rattler_cache/src/package_cache/cache_lock.rs b/rattler_cache/src/pa
 -                .open(&lock_file_path)
 +            let mut options = std::fs::OpenOptions::new();
 +            options.create(true).truncate(false).write(true).read(true);
-+            // Created group-writable in a cache shared with a group.
-+            let file = shared_cache_group::open(&options, &lock_file_path, true, false)
++            // Created writable by every user in a shared cache.
++            let file = shared_cache_perms::open(&options, &lock_file_path, true, false)
                  .map_err(|e| {
                      PackageCacheLayerError::LockError(
                          format!(
@@ -732,8 +732,8 @@ diff -ruN a/rattler_cache/src/package_cache/cache_lock.rs b/rattler_cache/src/pa
 -                .open(&lock_file_path)
 +            let mut options = std::fs::OpenOptions::new();
 +            options.create(true).read(true).write(true).truncate(false);
-+            // Created group-writable in a cache shared with a group.
-+            let file = shared_cache_group::open(&options, &lock_file_path, true, false)
++            // Created writable by every user in a shared cache.
++            let file = shared_cache_perms::open(&options, &lock_file_path, true, false)
                  .map_err(|e| {
                      PackageCacheLayerError::LockError(
                          format!(
@@ -744,11 +744,11 @@ diff -ruN a/rattler_cache/src/package_cache/mod.rs b/rattler_cache/src/package_c
                  // Take ownership of the temp directory path so it won't be auto-deleted
                  let temp_path = temp_dir.keep();
  
-+                // The extraction does not go through `fs_err`, so give the group
-+                // access to what it wrote if the cache is shared with a group.
-+                if shared_cache_group::applies_to(&temp_path) {
++                // The extraction does not go through `fs_err`, so give the other
++                // users access to what it wrote if the cache is shared.
++                if shared_cache_perms::applies_to(&temp_path) {
 +                    let tree = temp_path.clone();
-+                    let _ = tokio::task::spawn_blocking(move || shared_cache_group::fix_tree(&tree))
++                    let _ = tokio::task::spawn_blocking(move || shared_cache_perms::fix_tree(&tree))
 +                        .await;
 +                }
 +
@@ -763,7 +763,7 @@ diff -ruN a/rattler_repodata_gateway/src/gateway/sharded_subdir/tokio/index.rs b
  
      // Open and lock the cache file
 -    let cache_file = tokio::fs::OpenOptions::new()
-+    // Created group-writable in a cache shared with a group.
++    // Created writable by every user in a shared cache.
 +    let cache_file = fs_err::tokio::OpenOptions::new()
          .write(true)
          .read(true)
@@ -784,16 +784,16 @@ diff -ruN a/rattler_repodata_gateway/src/utils/flock.rs b/rattler_repodata_gatew
          // create the directory and then continue.
 -        let f = opts
 -            .open(path)
-+        // Only exclusive locks create the file; in a cache shared with a group
-+        // it is created group-writable.
++        // Only exclusive locks create the file; in a shared cache
++        // it is created writable by every user.
 +        let create = state == State::Exclusive;
-+        let f = shared_cache_group::open(opts, path, create, false)
++        let f = shared_cache_perms::open(opts, path, create, false)
              .or_else(|e| {
                  if e.kind() == io::ErrorKind::NotFound && state == State::Exclusive {
 -                    std::fs::create_dir_all(path.parent().unwrap())?;
 -                    Ok(opts.open(path)?)
-+                    shared_cache_group::create_dir_all(path.parent().unwrap(), 0o777)?;
-+                    Ok(shared_cache_group::open(opts, path, create, false)?)
++                    shared_cache_perms::create_dir_all(path.parent().unwrap(), 0o777)?;
++                    Ok(shared_cache_perms::open(opts, path, create, false)?)
                  } else {
                      Err(anyhow::Error::from(e))
                  }
@@ -812,8 +812,8 @@ diff -ruN a/tempfile/src/dir/imp/unix.rs b/tempfile/src/dir/imp/unix.rs
 -            disable_cleanup,
 -        })
 +    dir_options.create(&path).with_err_path(|| &path)?;
-+    // In a cache shared with a group, give the group access to the directory.
-+    let _ = shared_cache_group::fix_path(&path);
++    // In a shared cache, give the other users access to the directory.
++    let _ = shared_cache_perms::fix_path(&path);
 +    Ok(TempDir {
 +        path: path.into_boxed_path(),
 +        disable_cleanup,
@@ -828,8 +828,8 @@ diff -ruN a/tempfile/src/file/imp/unix.rs b/tempfile/src/file/imp/unix.rs
  
 -    open_options.open(path)
 +    let file = open_options.open(path)?;
-+    // In a cache shared with a group, give the group access to the file it will become.
-+    let _ = shared_cache_group::fix_file(&file, path);
++    // In a shared cache, give the other users access to the file it will become.
++    let _ = shared_cache_perms::fix_file(&file, path);
 +    Ok(file)
  }
  
@@ -839,8 +839,8 @@ diff -ruN a/tempfile/src/file/imp/unix.rs b/tempfile/src/file/imp/unix.rs
  
  pub fn persist(old_path: &Path, new_path: &Path, overwrite: bool) -> io::Result<()> {
 +    persist_inner(old_path, new_path, overwrite)?;
-+    // The temporary file may have been created outside a cache shared with a group.
-+    let _ = shared_cache_group::fix_path(new_path);
++    // The temporary file may have been created outside a shared cache.
++    let _ = shared_cache_perms::fix_path(new_path);
 +    Ok(())
 +}
 +
@@ -858,9 +858,9 @@ diff -ruN a/uv-build-frontend/src/lib.rs b/uv-build-frontend/src/lib.rs
 +        let output = self
 +            .run_script_unshared(venv, script, source_tree, environment_variables, modified_path)
 +            .await;
-+        // Build backends write into the source tree with the user's umask; in a cache shared
-+        // with a group (an unpacked source distribution), give the group access to it.
-+        let _ = shared_cache_group::fix_tree(source_tree);
++        // Build backends write into the source tree with the user's umask; in a shared cache
++        // (an unpacked source distribution), give the other users access to it.
++        let _ = shared_cache_perms::fix_tree(source_tree);
 +        output
 +    }
 +
@@ -875,3 +875,92 @@ diff -ruN a/uv-build-frontend/src/lib.rs b/uv-build-frontend/src/lib.rs
          /// Read lines from a reader and store them in a buffer.
          async fn read_from(
              mut reader: tokio::io::Split<tokio::io::BufReader<impl tokio::io::AsyncRead + Unpin>>,
+diff -ruN a/uv-git/src/git.rs b/uv-git/src/git.rs
+--- a/uv-git/src/git.rs
++++ b/uv-git/src/git.rs
+@@ -63,6 +63,23 @@
+         .env_remove(EnvVars::GIT_ALTERNATE_OBJECT_DIRECTORIES)
+         .env_remove(EnvVars::GIT_COMMON_DIR);
+ 
++    // In a shared cache, git must keep the repositories it writes usable by the
++    // other users (it otherwise follows the umask), and must work in repositories that another
++    // user created, which it refuses by default. Append the settings to any `GIT_CONFIG_COUNT`
++    // configuration in the environment rather than replacing it.
++    let settings = shared_cache_perms::git_config();
++    if !settings.is_empty() {
++        let base = std::env::var("GIT_CONFIG_COUNT")
++            .ok()
++            .and_then(|count| count.parse::<usize>().ok())
++            .unwrap_or(0);
++        for (i, (key, value)) in settings.iter().enumerate() {
++            cmd.env(&format!("GIT_CONFIG_KEY_{}", base + i), key);
++            cmd.env(&format!("GIT_CONFIG_VALUE_{}", base + i), value);
++        }
++        cmd.env("GIT_CONFIG_COUNT", (base + settings.len()).to_string());
++    }
++
+     Ok(cmd)
+ });
+ 
+@@ -214,6 +231,7 @@
+             .arg("init")
+             .cwd(path)
+             .exec_with_output()?;
++        let _ = shared_cache_perms::fix_tree(path);
+ 
+         Ok(Self {
+             path: path.to_path_buf(),
+@@ -618,8 +636,13 @@
+         // The .ok file should be written when the reset is successful.
+         // When Git LFS is enabled, the objects must also be fetched and
+         // validated successfully as part of the corresponding db.
++        // In a shared cache, the checked-out files follow the umask; give the other users
++        // access to them before the checkout is marked ready.
++        let _ = shared_cache_perms::fix_tree(&self.repo.path);
+         if with_lfs.is_none() || lfs_validation == Some(true) {
+-            paths::create(self.repo.path.with_extension(CHECKOUT_READY_EXTENSION))?;
++            let ready = self.repo.path.with_extension(CHECKOUT_READY_EXTENSION);
++            paths::create(&ready)?;
++            let _ = shared_cache_perms::fix_path(&ready);
+         }
+ 
+         Ok(lfs_validation)
+@@ -693,6 +716,20 @@
+     disable_ssl: bool,
+     offline: bool,
+ ) -> Result<()> {
++    let result = fetch_unshared(repo, remote_url, reference, disable_ssl, offline);
++    // `core.sharedRepository` does not cover every file git writes (`FETCH_HEAD`), and the next
++    // user to fetch into this database has to rewrite them.
++    let _ = shared_cache_perms::fix_tree(&repo.path);
++    result
++}
++
++fn fetch_unshared(
++    repo: &mut GitRepository,
++    remote_url: &DisplaySafeUrl,
++    reference: ReferenceOrOid<'_>,
++    disable_ssl: bool,
++    offline: bool,
++) -> Result<()> {
+     if let ReferenceOrOid::Oid(rev) = reference {
+         let local_object = reference.resolve(repo).ok();
+         if let Some(local_object) = local_object {
+@@ -888,6 +925,17 @@
+     repo: &mut GitRepository,
+     url: &DisplaySafeUrl,
+     revision: &GitOid,
++    disable_ssl: bool,
++) -> Result<bool> {
++    let result = fetch_lfs_unshared(repo, url, revision, disable_ssl);
++    let _ = shared_cache_perms::fix_tree(&repo.path);
++    result
++}
++
++fn fetch_lfs_unshared(
++    repo: &mut GitRepository,
++    url: &DisplaySafeUrl,
++    revision: &GitOid,
+     disable_ssl: bool,
+ ) -> Result<bool> {
+     let mut cmd = if let Ok(lfs) = GIT_LFS.as_ref() {

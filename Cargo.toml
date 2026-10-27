@@ -173,7 +173,7 @@ serde-value = "0.7.0"
 serde_with = "3.18.0"
 serde_yaml = "0.9.34"
 sevenz-rust2 = "0.24.0"
-shared_cache_group = { path = "patches/shared-cache/shared_cache_group" }
+shared_cache_perms = { path = "patches/shared-cache/shared_cache_perms" }
 shlex = "2.0.0"
 signal-hook = "0.4.0"
 slotmap = "1.0.7"
@@ -290,6 +290,7 @@ cacache = { path = "patches/shared-cache/cacache" }
 fs-err = { path = "patches/shared-cache/fs-err" }
 tempfile = { path = "patches/shared-cache/tempfile" }
 uv-build-frontend = { path = "patches/shared-cache/uv-build-frontend" }
+uv-git = { path = "patches/shared-cache/uv-git" }
 # <<< shared-cache patches
 version-ranges = { git = "https://github.com/astral-sh/pubgrub", rev = "d8efd77673c9a90792da9da31b6c0da7ea8a324b" }
 

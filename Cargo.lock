@@ -1453,7 +1453,7 @@ dependencies = [
  "serde_json",
  "sha1 0.10.6",
  "sha2 0.10.9",
- "shared_cache_group",
+ "shared_cache_perms",
  "ssri",
  "tempfile",
  "thiserror 1.0.69",
@@ -3033,7 +3033,7 @@ name = "fs-err"
 version = "3.3.2"
 dependencies = [
  "autocfg",
- "shared_cache_group",
+ "shared_cache_perms",
  "tokio",
 ]
 
@@ -6733,7 +6733,7 @@ dependencies = [
  "serde",
  "serde_ignored",
  "serde_json",
- "shared_cache_group",
+ "shared_cache_perms",
  "temp-env",
  "tempfile",
  "thiserror 2.0.21",
@@ -6908,6 +6908,7 @@ dependencies = [
  "rattler_networking",
  "reqwest",
  "serde",
+ "shared_cache_perms",
  "tempfile",
  "thiserror 2.0.21",
  "tokio",
@@ -8468,7 +8469,7 @@ dependencies = [
  "reqwest",
  "rustix 1.1.4",
  "serde_json",
- "shared_cache_group",
+ "shared_cache_perms",
  "simple_spawn_blocking",
  "tempfile",
  "thiserror 2.0.21",
@@ -8885,7 +8886,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with",
- "shared_cache_group",
+ "shared_cache_perms",
  "simple_spawn_blocking",
  "strum",
  "superslice",
@@ -10344,7 +10345,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "shared_cache_group"
+name = "shared_cache_perms"
 version = "0.1.0"
 dependencies = [
  "libc",
@@ -11113,7 +11114,7 @@ dependencies = [
  "getrandom 0.3.4",
  "once_cell",
  "rustix 1.1.4",
- "shared_cache_group",
+ "shared_cache_perms",
  "windows-sys 0.52.0",
 ]
 
@@ -11969,7 +11970,7 @@ dependencies = [
  "rustc-hash",
  "serde",
  "serde_json",
- "shared_cache_group",
+ "shared_cache_perms",
  "tempfile",
  "thiserror 2.0.21",
  "tokio",
@@ -12433,8 +12434,6 @@ dependencies = [
 [[package]]
 name = "uv-git"
 version = "0.0.90"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b011c62442009e130db0809d3bc8c258066c8fe365e42517b1c572cd594c3bac"
 dependencies = [
  "anyhow",
  "astral-reqwest-middleware",
@@ -12443,6 +12442,7 @@ dependencies = [
  "owo-colors",
  "papaya",
  "reqwest",
+ "shared_cache_perms",
  "thiserror 2.0.21",
  "tokio",
  "tracing",

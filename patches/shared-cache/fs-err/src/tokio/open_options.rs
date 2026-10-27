@@ -12,7 +12,7 @@ use tokio::fs::OpenOptions as TokioOpenOptions;
 pub struct OpenOptions {
     tokio: TokioOpenOptions,
     // A copy of the options as `std::fs::OpenOptions` plus the creation flags,
-    // for `shared_cache_group::open` (`tokio`'s options cannot be read back).
+    // for `shared_cache_perms::open` (`tokio`'s options cannot be read back).
     // `None` when constructed from `tokio::fs::OpenOptions`.
     std: Option<std::fs::OpenOptions>,
     create: bool,
@@ -116,8 +116,8 @@ impl OpenOptions {
     /// Wrapper for [`tokio::fs::OpenOptions::open`].
     pub async fn open(&self, path: impl AsRef<Path>) -> io::Result<File> {
         let path = path.as_ref();
-        if let Some(std) = self.std.as_ref().filter(|_| shared_cache_group::applies_to(path)) {
-            return shared_cache_group::open(std, path, self.create, self.create_new)
+        if let Some(std) = self.std.as_ref().filter(|_| shared_cache_perms::applies_to(path)) {
+            return shared_cache_perms::open(std, path, self.create, self.create_new)
                 .map(|f| File::from_parts(tokio::fs::File::from_std(f), path))
                 .map_err(|err| Error::build(err, ErrorKind::OpenFile, path));
         }

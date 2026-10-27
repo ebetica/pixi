@@ -32,7 +32,7 @@ pub(crate) fn open(path: &Path) -> Result<std::fs::File, impl FnOnce(PathBuf) ->
 pub(crate) fn create(path: &Path) -> Result<std::fs::File, impl FnOnce(PathBuf) -> io::Error> {
     let mut options = fs::OpenOptions::new();
     options.write(true).create(true).truncate(true);
-    shared_cache_group::open(&options, path, true, false)
+    shared_cache_perms::open(&options, path, true, false)
         .map_err(|err| |path| Error::build(err, ErrorKind::CreateFile, path))
 }
 
@@ -77,7 +77,7 @@ impl File {
         // TODO: Use fs::File::create_new once MSRV is at least 1.77
         let mut options = fs::OpenOptions::new();
         options.read(true).write(true).create_new(true);
-        match shared_cache_group::open(&options, &path, false, true) {
+        match shared_cache_perms::open(&options, &path, false, true) {
             Ok(file) => Ok(File::from_parts(file, path)),
             Err(err) => Err(Error::build(err, ErrorKind::CreateFile, path)),
         }

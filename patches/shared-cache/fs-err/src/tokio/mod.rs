@@ -37,7 +37,7 @@ pub async fn copy(from: impl AsRef<Path>, to: impl AsRef<Path>) -> Result<u64, i
     let copied = tokio::fs::copy(from, to)
         .await
         .map_err(|err| SourceDestError::build(err, SourceDestErrorKind::Copy, from, to))?;
-    let _ = shared_cache_group::fix_path(to);
+    let _ = shared_cache_perms::fix_path(to);
     Ok(copied)
 }
 
@@ -47,8 +47,8 @@ pub async fn copy(from: impl AsRef<Path>, to: impl AsRef<Path>) -> Result<u64, i
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio")))]
 pub async fn create_dir(path: impl AsRef<Path>) -> io::Result<()> {
     let path = path.as_ref();
-    if shared_cache_group::applies_to(path) {
-        return shared_cache_group::create_dir(path, 0o777)
+    if shared_cache_perms::applies_to(path) {
+        return shared_cache_perms::create_dir(path, 0o777)
             .map_err(|err| Error::build(err, ErrorKind::CreateDir, path));
     }
     tokio::fs::create_dir(path)
@@ -63,8 +63,8 @@ pub async fn create_dir(path: impl AsRef<Path>) -> io::Result<()> {
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio")))]
 pub async fn create_dir_all(path: impl AsRef<Path>) -> io::Result<()> {
     let path = path.as_ref();
-    if shared_cache_group::is_active() {
-        return shared_cache_group::create_dir_all(path, 0o777)
+    if shared_cache_perms::is_active() {
+        return shared_cache_perms::create_dir_all(path, 0o777)
             .map_err(|err| Error::build(err, ErrorKind::CreateDir, path));
     }
     tokio::fs::create_dir_all(path)
@@ -188,7 +188,7 @@ pub async fn rename(from: impl AsRef<Path>, to: impl AsRef<Path>) -> io::Result<
         .await
         .map_err(|err| SourceDestError::build(err, SourceDestErrorKind::Rename, from, to))?;
     // Whatever was moved into a shared cache may have been written elsewhere.
-    let _ = shared_cache_group::fix_tree(to);
+    let _ = shared_cache_perms::fix_tree(to);
     Ok(())
 }
 
@@ -201,7 +201,7 @@ pub async fn set_permissions(path: impl AsRef<Path>, perm: Permissions) -> io::R
     tokio::fs::set_permissions(path, perm)
         .await
         .map_err(|err| Error::build(err, ErrorKind::SetPermissions, path))?;
-    let _ = shared_cache_group::fix_path(path);
+    let _ = shared_cache_perms::fix_path(path);
     Ok(())
 }
 
@@ -270,6 +270,6 @@ pub async fn write(path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> io::Re
     tokio::fs::write(path, contents)
         .await
         .map_err(|err| Error::build(err, ErrorKind::Write, path))?;
-    let _ = shared_cache_group::fix_path(path);
+    let _ = shared_cache_perms::fix_path(path);
     Ok(())
 }

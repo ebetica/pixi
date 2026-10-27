@@ -104,6 +104,6 @@ features = [
     "Win32_Foundation",
 ]
 
-[dependencies.shared_cache_group]
+[dependencies.shared_cache_perms]
 version = "0.1.0"
-path = "../shared_cache_group"
+path = "../shared_cache_perms"

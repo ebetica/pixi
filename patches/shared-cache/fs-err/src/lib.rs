@@ -178,7 +178,7 @@ where
     let to = to.as_ref();
     let copied = fs::copy(from, to)
         .map_err(|source| SourceDestError::build(source, SourceDestErrorKind::Copy, from, to))?;
-    let _ = shared_cache_group::fix_path(to);
+    let _ = shared_cache_perms::fix_path(to);
     Ok(copied)
 }
 
@@ -190,7 +190,7 @@ where
     P: AsRef<Path>,
 {
     let path = path.as_ref();
-    shared_cache_group::create_dir(path, 0o777)
+    shared_cache_perms::create_dir(path, 0o777)
         .map_err(|source| Error::build(source, ErrorKind::CreateDir, path))
 }
 
@@ -202,7 +202,7 @@ where
     P: AsRef<Path>,
 {
     let path = path.as_ref();
-    shared_cache_group::create_dir_all(path, 0o777)
+    shared_cache_perms::create_dir_all(path, 0o777)
         .map_err(|source| Error::build(source, ErrorKind::CreateDir, path))
 }
 
@@ -297,7 +297,7 @@ pub fn rename<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> io::Result<()> 
     fs::rename(from, to)
         .map_err(|source| SourceDestError::build(source, SourceDestErrorKind::Rename, from, to))?;
     // Whatever was moved into a shared cache may have been written elsewhere.
-    let _ = shared_cache_group::fix_tree(to);
+    let _ = shared_cache_perms::fix_tree(to);
     Ok(())
 }
 
@@ -333,7 +333,7 @@ pub fn set_permissions<P: AsRef<Path>>(path: P, perm: fs::Permissions) -> io::Re
     let path = path.as_ref();
     fs::set_permissions(path, perm)
         .map_err(|source| Error::build(source, ErrorKind::SetPermissions, path))?;
-    let _ = shared_cache_group::fix_path(path);
+    let _ = shared_cache_perms::fix_path(path);
     Ok(())
 }
 

@@ -1183,11 +1183,11 @@ where
                 // Take ownership of the temp directory path so it won't be auto-deleted
                 let temp_path = temp_dir.keep();
 
-                // The extraction does not go through `fs_err`, so give the group
-                // access to what it wrote if the cache is shared with a group.
-                if shared_cache_group::applies_to(&temp_path) {
+                // The extraction does not go through `fs_err`, so give the other
+                // users access to what it wrote if the cache is shared.
+                if shared_cache_perms::applies_to(&temp_path) {
                     let tree = temp_path.clone();
-                    let _ = tokio::task::spawn_blocking(move || shared_cache_group::fix_tree(&tree))
+                    let _ = tokio::task::spawn_blocking(move || shared_cache_perms::fix_tree(&tree))
                         .await;
                 }
 

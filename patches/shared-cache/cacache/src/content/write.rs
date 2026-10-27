@@ -14,10 +14,10 @@ use memmap2::MmapMut;
 use ssri::{Algorithm, Integrity, IntegrityOpts};
 use tempfile::NamedTempFile;
 
-/// `create_dir_all` that, in a cache shared with a group, creates the
-/// directories group-owned and group-writable.
+/// `create_dir_all` that, in a shared cache, creates the
+/// directories readable and writable by every user.
 pub(crate) fn shared_dir_all(dir: &Path) -> std::io::Result<()> {
-    shared_cache_group::create_dir_all(dir, 0o777)
+    shared_cache_perms::create_dir_all(dir, 0o777)
 }
 
 /// Like `NamedTempFile::new_in`, but starts at mode 0666 so the umask (not a

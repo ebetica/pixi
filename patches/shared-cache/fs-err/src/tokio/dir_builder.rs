@@ -9,7 +9,7 @@ use std::path::Path;
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio")))]
 pub struct DirBuilder {
     inner: tokio::fs::DirBuilder,
-    // Mirrors for `shared_cache_group`, which `tokio::fs::DirBuilder` does not expose.
+    // Mirrors for `shared_cache_perms`, which `tokio::fs::DirBuilder` does not expose.
     recursive: bool,
     mode: Option<u32>,
 }
@@ -47,12 +47,12 @@ impl DirBuilder {
     /// Wrapper around [`tokio::fs::DirBuilder::create`].
     pub async fn create(&self, path: impl AsRef<Path>) -> io::Result<()> {
         let path = path.as_ref();
-        if shared_cache_group::is_active() {
+        if shared_cache_perms::is_active() {
             let mode = self.mode.unwrap_or(0o777);
             let result = if self.recursive {
-                shared_cache_group::create_dir_all(path, mode)
+                shared_cache_perms::create_dir_all(path, mode)
             } else {
-                shared_cache_group::create_dir(path, mode)
+                shared_cache_perms::create_dir(path, mode)
             };
             return result.map_err(|err| Error::build(err, ErrorKind::CreateDir, path));
         }

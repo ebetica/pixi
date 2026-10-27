@@ -2,15 +2,14 @@
 // `fs-err` depends on this crate, so it uses `std::fs` directly.
 #![allow(clippy::disallowed_methods)]
 
-//! Keep cache directories that several users share through a Unix group
-//! usable by every member of that group, whatever their umask.
+//! Keep cache directories that several users share usable by all of them,
+//! whatever their umask.
 //!
-//! Nothing happens until [`activate`] is called. After that, for paths under
-//! one of the registered roots (and not under an excluded path):
-//!
-//! - directories are created group-owned by the shared group with mode
-//!   `2775` (setgid, so entries created inside inherit the group),
-//! - files get group read/write (and group execute when the owner has it).
+//! Nothing happens until [`activate`] is called. After that, entries created
+//! under one of the registered roots (and not under an excluded path) get the
+//! permissions the active [`Mode`] adds. With [`Mode::world`], directories get
+//! mode `0777` and files `0666` (`0777` when the owner can execute them), so
+//! every user on the host can read and replace them.
 //!
 //! Directories and files that other processes may open concurrently are
 //! created under a temporary name, fixed up, and then renamed into place
@@ -22,14 +21,45 @@
 //! this crate where they create files and directories.
 
 use std::{
-    fs::{self, File, OpenOptions},
+    fs::{File, OpenOptions},
     io,
     path::{Component, Path, PathBuf},
     sync::OnceLock,
 };
 
+/// What sharing does to the permissions of what is created in a shared cache.
+///
+/// Every permission change this crate makes, and the git configuration from
+/// [`git_config`], take their bits from the active mode, so this is the one
+/// place that decides them.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Mode {
+    /// Bits added to every directory.
+    pub dir_bits: u32,
+    /// Bits added to every file.
+    pub file_bits: u32,
+    /// Bits added to a file whose owner can execute it.
+    pub exec_bits: u32,
+    /// git's `core.sharedRepository` for repositories in the cache.
+    pub git_shared_repository: &'static str,
+}
+
+impl Mode {
+    /// Share with every user on the host: directories `0777`, files `0666`,
+    /// and execute for everyone on files the owner can execute. There is no
+    /// sticky bit, so users can replace each other's lock and temporary files.
+    pub const fn world() -> Self {
+        Self {
+            dir_bits: 0o777,
+            file_bits: 0o666,
+            exec_bits: 0o111,
+            git_shared_repository: "0666",
+        }
+    }
+}
+
 struct Shared {
-    gid: u32,
+    mode: Mode,
     uid: u32,
     roots: Vec<PathBuf>,
     excluded: Vec<PathBuf>,
@@ -37,18 +67,15 @@ struct Shared {
 
 static SHARED: OnceLock<Shared> = OnceLock::new();
 
-/// Share everything created under `roots`, except under `excluded`, with the
-/// group `gid` from now on. Returns `false` if sharing was already activated.
-///
-/// The caller must have checked that the current user is a member of `gid`
-/// (see [`is_member`]).
+/// Share everything created under `roots`, except under `excluded`, as
+/// `mode` says from now on. Returns `false` if sharing was already activated.
 pub fn activate(
-    gid: u32,
+    mode: Mode,
     roots: impl IntoIterator<Item = PathBuf>,
     excluded: impl IntoIterator<Item = PathBuf>,
 ) -> bool {
     let shared = Shared {
-        gid,
+        mode,
         uid: imp::euid(),
         roots: roots.into_iter().filter_map(|p| normalize(&p)).collect(),
         excluded: excluded.into_iter().filter_map(|p| normalize(&p)).collect(),
@@ -61,9 +88,18 @@ pub fn is_active() -> bool {
     SHARED.get().is_some()
 }
 
-/// The shared group, if sharing is active.
-pub fn group() -> Option<u32> {
-    SHARED.get().map(|s| s.gid)
+/// git configuration (key, value) for commands that write repositories in the
+/// cache, empty unless sharing is active: `core.sharedRepository` from the
+/// mode, and `safe.directory=*`, since git refuses to work in a repository
+/// that another user owns.
+pub fn git_config() -> Vec<(&'static str, &'static str)> {
+    match SHARED.get() {
+        Some(shared) => vec![
+            ("core.sharedRepository", shared.mode.git_shared_repository),
+            ("safe.directory", "*"),
+        ],
+        None => Vec::new(),
+    }
 }
 
 /// Returns `true` if sharing is active and `path` lies under a shared root.
@@ -100,40 +136,9 @@ fn normalize(path: &Path) -> Option<PathBuf> {
     Some(out)
 }
 
-/// Looks up a group by name, or parses a numeric group id.
-///
-/// Statically linked (musl) builds only see `/etc/group` through the C
-/// library, so `/etc/group.cache` (written by `nsscache` for LDAP/SSSD groups)
-/// is read as well.
-pub fn resolve_group(name: &str) -> Option<u32> {
-    if let Ok(gid) = name.parse::<u32>() {
-        return Some(gid);
-    }
-    imp::getgrnam(name).or_else(|| {
-        ["/etc/group", "/etc/group.cache"]
-            .into_iter()
-            .filter_map(|file| fs::read_to_string(file).ok())
-            .find_map(|text| group_from_file(&text, name))
-    })
-}
-
-fn group_from_file(text: &str, name: &str) -> Option<u32> {
-    text.lines().find_map(|line| {
-        let mut fields = line.split(':');
-        (fields.next() == Some(name))
-            .then(|| fields.nth(1)?.parse().ok())
-            .flatten()
-    })
-}
-
-/// Returns `true` if the current process is a member of the group `gid`.
-pub fn is_member(gid: u32) -> bool {
-    imp::is_member(gid)
-}
-
 /// Creates the directory `path` with permission bits `mode` (before the umask,
 /// usually `0o777`). Under a shared root, the directory appears with the
-/// shared group and mode `2775` in one step.
+/// shared permissions in one step.
 pub fn create_dir(path: &Path, mode: u32) -> io::Result<()> {
     match shared_for(path) {
         Some(shared) => imp::create_dir(shared, path, mode),
@@ -176,7 +181,7 @@ pub fn create_dir_all(path: &Path, mode: u32) -> io::Result<()> {
 /// caller passes along (they cannot be read back from [`OpenOptions`]).
 ///
 /// Under a shared root, a file that does not exist yet is created under a
-/// temporary name, given group read/write, and renamed into place without
+/// temporary name, given the shared permissions, and renamed into place without
 /// replacing anything, so another user never opens it with the umask's
 /// permissions.
 pub fn open(
@@ -191,8 +196,7 @@ pub fn open(
     }
 }
 
-/// Gives a file that was just created at `path` the shared group and group
-/// read/write, if `path` is under a shared root and the file is ours.
+/// Gives a file that was just created at `path` the shared permissions, if `path` is under a shared root and the file is ours.
 pub fn fix_file(file: &File, path: &Path) -> io::Result<()> {
     match shared_for(path) {
         Some(shared) => imp::fix_file(shared, file),
@@ -200,8 +204,8 @@ pub fn fix_file(file: &File, path: &Path) -> io::Result<()> {
     }
 }
 
-/// Like [`fix_file`] for a path: directories get mode `2775`. Symbolic links
-/// are left alone.
+/// Like [`fix_file`] for a path, file or directory. Symbolic links are left
+/// alone.
 pub fn fix_path(path: &Path) -> io::Result<()> {
     match shared_for(path) {
         Some(shared) => imp::fix_path(shared, path),
@@ -237,63 +241,23 @@ mod imp {
         sync::atomic::{AtomicU64, Ordering},
     };
 
-    use super::Shared;
+    use super::{Mode, Shared};
 
     pub(super) fn euid() -> u32 {
         // SAFETY: geteuid has no preconditions.
         unsafe { libc::geteuid() }
     }
 
-    pub(super) fn is_member(gid: u32) -> bool {
-        // SAFETY: getegid has no preconditions.
-        if unsafe { libc::getegid() } == gid {
-            return true;
-        }
-        // SAFETY: a zero-sized call returns the number of groups.
-        let n = unsafe { libc::getgroups(0, std::ptr::null_mut()) };
-        if n <= 0 {
-            return false;
-        }
-        let mut groups = vec![0 as libc::gid_t; n as usize];
-        // SAFETY: the buffer holds `n` entries.
-        let n = unsafe { libc::getgroups(n, groups.as_mut_ptr()) };
-        n > 0 && groups[..n as usize].contains(&gid)
-    }
-
-    pub(super) fn getgrnam(name: &str) -> Option<u32> {
-        let name = CString::new(name).ok()?;
-        let mut buf = vec![0u8; 16 * 1024];
-        loop {
-            // SAFETY: `group` is plain data that getgrnam_r fills in.
-            let mut group: libc::group = unsafe { std::mem::zeroed() };
-            let mut result = std::ptr::null_mut();
-            // SAFETY: all pointers are valid for the given lengths.
-            let rc = unsafe {
-                libc::getgrnam_r(
-                    name.as_ptr(),
-                    &mut group,
-                    buf.as_mut_ptr().cast(),
-                    buf.len(),
-                    &mut result,
-                )
-            };
-            if rc == libc::ERANGE && buf.len() < 1 << 20 {
-                buf.resize(buf.len() * 2, 0);
-                continue;
-            }
-            return (rc == 0 && !result.is_null()).then_some(group.gr_gid);
-        }
-    }
-
-    /// The mode an entry should have: the group gets what the owner has for
-    /// files (read/write, plus execute if the owner can execute), and
-    /// everything for directories, which also get the setgid bit.
-    pub(super) fn wanted_mode(mode: u32, is_dir: bool) -> u32 {
+    /// The mode an entry should have: its current mode plus the bits `shared`
+    /// adds for its kind.
+    pub(super) fn wanted_mode(shared: &Mode, mode: u32, is_dir: bool) -> u32 {
         let perm = mode & 0o7777;
         if is_dir {
-            perm | 0o2070
+            perm | shared.dir_bits
+        } else if perm & 0o100 != 0 {
+            perm | shared.file_bits | shared.exec_bits
         } else {
-            perm | 0o060 | ((perm & 0o100) >> 3)
+            perm | shared.file_bits
         }
     }
 
@@ -313,7 +277,6 @@ mod imp {
     fn fix(
         shared: &Shared,
         meta: &fs::Metadata,
-        chown: impl FnOnce(u32) -> io::Result<()>,
         chmod: impl FnOnce(u32) -> io::Result<()>,
     ) -> io::Result<()> {
         // Only the owner can change an entry; entries of other users were
@@ -321,14 +284,9 @@ mod imp {
         if meta.uid() != shared.uid || meta.file_type().is_symlink() {
             return Ok(());
         }
-        let regroup = meta.gid() != shared.gid;
-        if regroup {
-            chown(shared.gid)?;
-        }
         let mode = meta.mode() & 0o7777;
-        let want = wanted_mode(mode, meta.is_dir());
-        // Changing the group can clear the setgid bit, so set the mode again.
-        if regroup || want != mode {
+        let want = wanted_mode(&shared.mode, mode, meta.is_dir());
+        if want != mode {
             chmod(want)?;
         }
         Ok(())
@@ -339,8 +297,6 @@ mod imp {
         fix(
             shared,
             &file.metadata()?,
-            // SAFETY: `fd` is an open descriptor; uid -1 keeps the owner.
-            |gid| check(unsafe { libc::fchown(fd, libc::uid_t::MAX, gid) }),
             // SAFETY: `fd` is an open descriptor.
             |mode| check(unsafe { libc::fchmod(fd, mode as libc::mode_t) }),
         )
@@ -352,8 +308,6 @@ mod imp {
         fix(
             shared,
             &meta,
-            // SAFETY: `c` is a valid C string; uid -1 keeps the owner.
-            |gid| check(unsafe { libc::lchown(c.as_ptr(), libc::uid_t::MAX, gid) }),
             // SAFETY: `c` is a valid C string.
             |mode| check(unsafe { libc::chmod(c.as_ptr(), mode as libc::mode_t) }),
         )
@@ -533,12 +487,6 @@ mod imp {
     pub(super) fn euid() -> u32 {
         0
     }
-    pub(super) fn is_member(_gid: u32) -> bool {
-        false
-    }
-    pub(super) fn getgrnam(_name: &str) -> Option<u32> {
-        None
-    }
     pub(super) fn plain_create_dir(path: &Path, _mode: u32, recursive: bool) -> io::Result<()> {
         fs::DirBuilder::new().recursive(recursive).create(path)
     }
@@ -575,21 +523,6 @@ mod tests {
 
     use super::*;
 
-    /// The group the tests share with: a supplementary group if there is one,
-    /// so that the group change is exercised, else the primary group.
-    fn test_gid() -> u32 {
-        // SAFETY: getegid has no preconditions.
-        let egid = unsafe { libc::getegid() };
-        let mut groups = vec![0 as libc::gid_t; 256];
-        // SAFETY: the buffer holds 256 entries.
-        let n = unsafe { libc::getgroups(256, groups.as_mut_ptr()) };
-        groups[..n.max(0) as usize]
-            .iter()
-            .copied()
-            .find(|&g| g != egid)
-            .unwrap_or(egid)
-    }
-
     /// One shared root per test process (activation is process-wide), with
     /// umask 022 like most users have.
     fn root() -> &'static Path {
@@ -598,21 +531,17 @@ mod tests {
             // SAFETY: umask has no preconditions.
             unsafe { libc::umask(0o022) };
             let base = std::env::temp_dir()
-                .join(format!("shared-cache-group-test-{}", std::process::id()));
+                .join(format!("shared-cache-perms-test-{}", std::process::id()));
             let _ = fs::remove_dir_all(&base);
             fs::create_dir_all(&base).unwrap();
             let root = base.join("cache");
-            assert!(activate(test_gid(), [root.clone()], [root.join("envs")]));
+            assert!(activate(Mode::world(), [root.clone()], [root.join("envs")]));
             root
         })
     }
 
     fn mode(path: &Path) -> u32 {
         fs::symlink_metadata(path).unwrap().permissions().mode() & 0o7777
-    }
-
-    fn gid(path: &Path) -> u32 {
-        fs::symlink_metadata(path).unwrap().gid()
     }
 
     fn leftovers(dir: &Path) -> Vec<PathBuf> {
@@ -631,26 +560,17 @@ mod tests {
 
     #[test]
     fn wanted_modes() {
-        assert_eq!(imp::wanted_mode(0o644, false), 0o664);
-        assert_eq!(imp::wanted_mode(0o755, false), 0o775);
-        assert_eq!(imp::wanted_mode(0o600, false), 0o660);
-        assert_eq!(imp::wanted_mode(0o700, false), 0o770);
-        assert_eq!(imp::wanted_mode(0o755, true), 0o2775);
-        assert_eq!(imp::wanted_mode(0o700, true), 0o2770);
+        let world = Mode::world();
+        assert_eq!(imp::wanted_mode(&world, 0o644, false), 0o666);
+        assert_eq!(imp::wanted_mode(&world, 0o755, false), 0o777);
+        assert_eq!(imp::wanted_mode(&world, 0o600, false), 0o666);
+        assert_eq!(imp::wanted_mode(&world, 0o700, false), 0o777);
+        assert_eq!(imp::wanted_mode(&world, 0o755, true), 0o777);
+        assert_eq!(imp::wanted_mode(&world, 0o700, true), 0o777);
     }
 
     #[test]
-    fn group_file_lookup() {
-        let text = "root:x:0:\nslurm-users:x:200005:a,b\nbad\n";
-        assert_eq!(group_from_file(text, "slurm-users"), Some(200005));
-        assert_eq!(group_from_file(text, "root"), Some(0));
-        assert_eq!(group_from_file(text, "missing"), None);
-        assert_eq!(resolve_group("1234"), Some(1234));
-        assert!(is_member(test_gid()));
-    }
-
-    #[test]
-    fn directories_are_group_owned_setgid() {
+    fn directories_are_world_writable() {
         let root = root();
         let deep = root.join("dirs/a/b/c");
         create_dir_all(&deep, 0o777).unwrap();
@@ -660,8 +580,7 @@ mod tests {
             root.join("dirs/a"),
             deep.clone(),
         ] {
-            assert_eq!(mode(&dir), 0o2775, "{}", dir.display());
-            assert_eq!(gid(&dir), test_gid(), "{}", dir.display());
+            assert_eq!(mode(&dir), 0o777, "{}", dir.display());
         }
         // The parent of the root is not shared.
         assert_eq!(mode(root.parent().unwrap()), 0o755);
@@ -673,7 +592,7 @@ mod tests {
     }
 
     #[test]
-    fn files_get_group_read_write() {
+    fn files_are_world_read_write() {
         let dir = root().join("files");
         create_dir_all(&dir, 0o777).unwrap();
         let path = dir.join("x.lock");
@@ -681,8 +600,7 @@ mod tests {
         options.read(true).write(true).create(true);
         let file = open(&options, &path, true, false).unwrap();
         drop(file);
-        assert_eq!(mode(&path), 0o664);
-        assert_eq!(gid(&path), test_gid());
+        assert_eq!(mode(&path), 0o666);
 
         // An existing file is opened, not replaced.
         let inode = fs::metadata(&path).unwrap().ino();
@@ -696,7 +614,7 @@ mod tests {
 
         let fresh = dir.join("fresh");
         open(&new, &fresh, false, true).unwrap();
-        assert_eq!(mode(&fresh), 0o664);
+        assert_eq!(mode(&fresh), 0o666);
         assert!(leftovers(&dir).is_empty());
     }
 
@@ -721,8 +639,8 @@ mod tests {
             .collect();
         let inodes: Vec<u64> = threads.into_iter().map(|t| t.join().unwrap()).collect();
         assert!(inodes.iter().all(|&i| i == inodes[0]));
-        assert_eq!(mode(&lock), 0o664);
-        assert_eq!(mode(&dir), 0o2775);
+        assert_eq!(mode(&lock), 0o666);
+        assert_eq!(mode(&dir), 0o777);
         assert!(leftovers(&dir).is_empty());
     }
 
@@ -757,10 +675,9 @@ mod tests {
         fs::set_permissions(tree.join("data"), fs::Permissions::from_mode(0o600)).unwrap();
         std::os::unix::fs::symlink("data", tree.join("link")).unwrap();
         fix_tree(&tree).unwrap();
-        assert_eq!(mode(&tree), 0o2775);
-        assert_eq!(mode(&tree.join("bin")), 0o2775);
-        assert_eq!(mode(&tree.join("bin/tool")), 0o775);
-        assert_eq!(mode(&tree.join("data")), 0o660);
-        assert_eq!(gid(&tree.join("data")), test_gid());
+        assert_eq!(mode(&tree), 0o777);
+        assert_eq!(mode(&tree.join("bin")), 0o777);
+        assert_eq!(mode(&tree.join("bin/tool")), 0o777);
+        assert_eq!(mode(&tree.join("data")), 0o666);
     }
 }
