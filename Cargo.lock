@@ -1493,8 +1493,6 @@ dependencies = [
 [[package]]
 name = "cacache"
 version = "13.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c5063741c7b2e260bbede781cf4679632dd90e2718e99f7715e46824b65670b"
 dependencies = [
  "digest 0.10.7",
  "either",
@@ -8279,8 +8277,6 @@ dependencies = [
 [[package]]
 name = "rattler_cache"
 version = "0.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2aa78ff1be938e28fdcdb9837f90da858d090ec1147a00a2aab8490c077f557"
 dependencies = [
  "ahash",
  "anyhow",
@@ -8298,6 +8294,7 @@ dependencies = [
  "rattler_networking",
  "rattler_package_streaming",
  "rattler_redaction",
+ "rattler_shared_tempfile",
  "rayon",
  "reqwest",
  "serde_json",
@@ -8312,8 +8309,6 @@ dependencies = [
 [[package]]
 name = "rattler_conda_types"
 version = "0.46.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6018a34d7edb8a6b97c971ba935e59d217a0986376d14f4d515fb238b28bdf02"
 dependencies = [
  "ahash",
  "chrono",
@@ -8334,6 +8329,7 @@ dependencies = [
  "rattler_digest",
  "rattler_macros",
  "rattler_redaction",
+ "rattler_shared_tempfile",
  "rayon",
  "regex",
  "serde",
@@ -8634,8 +8630,6 @@ dependencies = [
 [[package]]
 name = "rattler_repodata_gateway"
 version = "0.29.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76d033dc7d25fedc1918719b6d084983436d1cea15621ab5f4c8d722c9020376"
 dependencies = [
  "ahash",
  "anyhow",
@@ -8673,6 +8667,7 @@ dependencies = [
  "rattler_networking",
  "rattler_package_streaming",
  "rattler_redaction",
+ "rattler_shared_tempfile",
  "reqwest",
  "retry-policies",
  "rmp-serde",
@@ -8709,6 +8704,13 @@ dependencies = [
  "thiserror 2.0.18",
  "tracing",
  "url",
+]
+
+[[package]]
+name = "rattler_shared_tempfile"
+version = "0.1.0"
+dependencies = [
+ "tempfile",
 ]
 
 [[package]]

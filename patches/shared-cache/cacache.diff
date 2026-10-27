@@ -1,0 +1,48 @@
+--- a/src/async_lib.rs	2006-07-24 01:21:28.000000000 +0000
++++ b/src/async_lib.rs	2026-10-27 03:25:55.936144834 +0000
+@@ -116,7 +116,7 @@
+     let cloned = tmp_path.clone();
+ 
+     Some(
+-        spawn_blocking(|| NamedTempFile::new_in(tmp_path))
++        spawn_blocking(move || crate::content::write::shared_named_tempfile(&tmp_path))
+             .await
+             .with_context(|| format!("Failed to create a temp file at {}", cloned.display())),
+     )
+@@ -128,7 +128,7 @@
+     tmp_path: std::path::PathBuf,
+ ) -> Option<crate::Result<NamedTempFile>> {
+     let cloned = tmp_path.clone();
+-    match spawn_blocking(|| NamedTempFile::new_in(tmp_path)).await {
++    match spawn_blocking(move || crate::content::write::shared_named_tempfile(&tmp_path)).await {
+         Ok(ctx) => Some(
+             ctx.with_context(|| format!("Failed to create a temp file at {}", cloned.display())),
+         ),
+--- a/src/content/write.rs	2006-07-24 01:21:28.000000000 +0000
++++ b/src/content/write.rs	2026-10-27 03:06:20.485573206 +0000
+@@ -15,6 +15,16 @@
+ use ssri::{Algorithm, Integrity, IntegrityOpts};
+ use tempfile::NamedTempFile;
+ 
++/// Like `NamedTempFile::new_in`, but starts at mode 0666 so the umask (not a
++/// hardcoded 0600) decides who can read cache content shared between users.
++pub(crate) fn shared_named_tempfile(dir: &std::path::Path) -> std::io::Result<NamedTempFile> {
++    #[allow(unused_mut)]
++    let mut b = tempfile::Builder::new();
++    #[cfg(unix)]
++    b.permissions(std::os::unix::fs::PermissionsExt::from_mode(0o666));
++    b.tempfile_in(dir)
++}
++
+ #[cfg(any(feature = "async-std", feature = "tokio"))]
+ use crate::async_lib::{AsyncWrite, JoinHandle};
+ use crate::content::path;
+@@ -61,7 +71,7 @@
+                 )
+             })?;
+         let tmp_path_clone = tmp_path.clone();
+-        let mut tmpfile = NamedTempFile::new_in(tmp_path).with_context(|| {
++        let mut tmpfile = shared_named_tempfile(&tmp_path).with_context(|| {
+             format!(
+                 "Failed to create temp file while initializing a writer, inside {}",
+                 tmp_path_clone.display()
