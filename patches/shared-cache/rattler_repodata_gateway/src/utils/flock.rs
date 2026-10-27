@@ -124,12 +124,14 @@ impl LockedFile {
         // If we want an exclusive lock then if we fail because of NotFound it's
         // likely because an intermediate directory didn't exist, so try to
         // create the directory and then continue.
-        let f = opts
-            .open(path)
+        // Only exclusive locks create the file; in a cache shared with a group
+        // it is created group-writable.
+        let create = state == State::Exclusive;
+        let f = shared_cache_group::open(opts, path, create, false)
             .or_else(|e| {
                 if e.kind() == io::ErrorKind::NotFound && state == State::Exclusive {
-                    std::fs::create_dir_all(path.parent().unwrap())?;
-                    Ok(opts.open(path)?)
+                    shared_cache_group::create_dir_all(path.parent().unwrap(), 0o777)?;
+                    Ok(shared_cache_group::open(opts, path, create, false)?)
                 } else {
                     Err(anyhow::Error::from(e))
                 }

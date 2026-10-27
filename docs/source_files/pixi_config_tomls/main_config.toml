@@ -61,6 +61,10 @@ repodata = "/shared/hpc/repodata"                                 # repodata cac
 # - "always": redirect every kind when the root looks like netfs.
 # - "never": never redirect.
 netfs-redirect = "auto"
+
+# Share the cache with the members of a Unix group: directories are created
+# group-owned with mode 2775 and files group read/write, whatever the umask.
+shared-group = "slurm-users"
 #  --8<-- [end:cache]
 
 #  --8<-- [start:repodata-config]

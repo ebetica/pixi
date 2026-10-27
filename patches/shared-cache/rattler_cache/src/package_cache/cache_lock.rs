@@ -90,12 +90,10 @@ impl CacheGlobalLock {
     pub async fn acquire(path: &Path) -> Result<Self, PackageCacheLayerError> {
         let lock_file_path = path.to_path_buf();
         let acquire_lock_fut = simple_spawn_blocking::tokio::run_blocking_task(move || {
-            let file = std::fs::OpenOptions::new()
-                .create(true)
-                .truncate(false)
-                .write(true)
-                .read(true)
-                .open(&lock_file_path)
+            let mut options = std::fs::OpenOptions::new();
+            options.create(true).truncate(false).write(true).read(true);
+            // Created group-writable in a cache shared with a group.
+            let file = shared_cache_group::open(&options, &lock_file_path, true, false)
                 .map_err(|e| {
                     PackageCacheLayerError::LockError(
                         format!(
@@ -147,12 +145,10 @@ impl CacheMetadataFile {
         let lock_file_path = path.to_path_buf();
 
         simple_spawn_blocking::tokio::run_blocking_task(move || {
-            let file = std::fs::OpenOptions::new()
-                .create(true)
-                .read(true)
-                .write(true)
-                .truncate(false)
-                .open(&lock_file_path)
+            let mut options = std::fs::OpenOptions::new();
+            options.create(true).read(true).write(true).truncate(false);
+            // Created group-writable in a cache shared with a group.
+            let file = shared_cache_group::open(&options, &lock_file_path, true, false)
                 .map_err(|e| {
                     PackageCacheLayerError::LockError(
                         format!(

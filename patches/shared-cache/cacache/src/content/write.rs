@@ -1,4 +1,3 @@
-use std::fs::DirBuilder;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 #[cfg(any(feature = "async-std", feature = "tokio"))]
@@ -14,6 +13,12 @@ use futures::prelude::*;
 use memmap2::MmapMut;
 use ssri::{Algorithm, Integrity, IntegrityOpts};
 use tempfile::NamedTempFile;
+
+/// `create_dir_all` that, in a cache shared with a group, creates the
+/// directories group-owned and group-writable.
+pub(crate) fn shared_dir_all(dir: &Path) -> std::io::Result<()> {
+    shared_cache_group::create_dir_all(dir, 0o777)
+}
 
 /// Like `NamedTempFile::new_in`, but starts at mode 0666 so the umask (not a
 /// hardcoded 0600) decides who can read cache content shared between users.
@@ -61,10 +66,7 @@ impl Writer {
         let cache_path = cache.to_path_buf();
         let mut tmp_path = cache_path.clone();
         tmp_path.push("tmp");
-        DirBuilder::new()
-            .recursive(true)
-            .create(&tmp_path)
-            .with_context(|| {
+        shared_dir_all(&tmp_path).with_context(|| {
                 format!(
                     "Failed to create cache directory for temporary files, at {}",
                     tmp_path.display()
@@ -89,11 +91,8 @@ impl Writer {
     pub fn close(self) -> Result<Integrity> {
         let sri = self.builder.result();
         let cpath = path::content_path(&self.cache, &sri);
-        DirBuilder::new()
-            .recursive(true)
-            // Safe unwrap. cpath always has multiple segments
-            .create(cpath.parent().unwrap())
-            .with_context(|| {
+        // Safe unwrap. cpath always has multiple segments
+        shared_dir_all(cpath.parent().unwrap()).with_context(|| {
                 format!(
                     "Failed to create destination directory for cache contents, at {}",
                     path::content_path(&self.cache, &sri)
@@ -172,11 +171,7 @@ impl AsyncWriter {
         let cache_path = cache.to_path_buf();
         let mut tmp_path = cache_path.clone();
         tmp_path.push("tmp");
-        crate::async_lib::DirBuilder::new()
-            .recursive(true)
-            .create(&tmp_path)
-            .await
-            .with_context(|| {
+        shared_dir_all(&tmp_path).with_context(|| {
                 format!(
                     "Failed to create cache directory for temporary files, at {}",
                     tmp_path.display()
@@ -222,10 +217,8 @@ impl AsyncWriter {
 
                             // Start the operation asynchronously.
                             *state = State::Busy(crate::async_lib::spawn_blocking(|| {
-                                let res = std::fs::DirBuilder::new()
-                                    .recursive(true)
-                                    // Safe unwrap. cpath always has multiple segments
-                                    .create(cpath.parent().unwrap())
+                                // Safe unwrap. cpath always has multiple segments
+                                let res = shared_dir_all(cpath.parent().unwrap())
                                     .with_context(|| {
                                         format!(
                                             "building directory {} failed",

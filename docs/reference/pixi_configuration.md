@@ -419,6 +419,26 @@ The redirect target is chosen from the first non-netfs candidate among
 `$SLURM_TMPDIR`, `$PBS_JOBFS`, `$SCRATCH`, and `$TMPDIR`, falling back to the
 system temp directory.
 
+#### `shared-group`
+
+A Unix group (name or numeric id) that shares the cache between users, for
+example a node-local cache that everyone on a cluster uses:
+
+```toml
+[cache]
+root = "/tmp/pixi-cache"
+shared-group = "slurm-users"
+```
+
+When set, every directory pixi creates in the cache (the root included) is
+owned by this group with mode `2775`, and every file is group read/write,
+whatever the user's umask, so members can use and extend what others
+downloaded. The cache root and the explicitly configured per-kind directories
+are shared; detached environments are not. If the group does not exist or the
+user is not a member, pixi prints a warning and uses the cache as if the
+setting were absent. `PIXI_CACHE_SHARED_GROUP` overrides this setting. It is
+read from the global configuration only.
+
 #### Path syntax
 
 All path fields under `[cache]` (including `root` and every per-kind
@@ -461,6 +481,10 @@ that kind and uses the path verbatim.
 - `PIXI_CACHE_NETFS_REDIRECT` = `auto` | `always` | `never` — overrides
     `[cache.netfs-redirect]`. An unrecognized value is logged and ignored
     (config falls through).
+
+**Shared group override.**
+
+- `PIXI_CACHE_SHARED_GROUP` = `<group>` — overrides `[cache.shared-group]`.
 
 **Detection escape hatches.** These force the network-filesystem detection
 itself rather than the policy. They're intended for tests, CI, and one-off

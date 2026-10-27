@@ -70,7 +70,7 @@ impl Hash for SerializableMetadata {
 /// Raw insertion into the cache index.
 pub fn insert(cache: &Path, key: &str, opts: WriteOpts) -> Result<Integrity> {
     let bucket = bucket_path(cache, key);
-    fs::create_dir_all(bucket.parent().unwrap()).with_context(|| {
+    crate::content::write::shared_dir_all(bucket.parent().unwrap()).with_context(|| {
         format!(
             "Failed to create index bucket directory: {:?}",
             bucket.parent().unwrap()
@@ -86,11 +86,13 @@ pub fn insert(cache: &Path, key: &str, opts: WriteOpts) -> Result<Integrity> {
     })
     .with_context(|| format!("Failed to serialize entry with key `{key}`"))?;
 
-    let mut buck = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(&bucket)
-        .with_context(|| format!("Failed to create or open index bucket at {bucket:?}"))?;
+    let mut buck = shared_cache_group::open(
+        OpenOptions::new().create(true).append(true),
+        &bucket,
+        true,
+        false,
+    )
+    .with_context(|| format!("Failed to create or open index bucket at {bucket:?}"))?;
 
     let out = format!("\n{}\t{}", hash_entry(&stringified), stringified);
     buck.write_all(out.as_bytes())
@@ -107,8 +109,7 @@ pub fn insert(cache: &Path, key: &str, opts: WriteOpts) -> Result<Integrity> {
 /// Asynchronous raw insertion into the cache index.
 pub async fn insert_async<'a>(cache: &'a Path, key: &'a str, opts: WriteOpts) -> Result<Integrity> {
     let bucket = bucket_path(cache, key);
-    crate::async_lib::create_dir_all(bucket.parent().unwrap())
-        .await
+    crate::content::write::shared_dir_all(bucket.parent().unwrap())
         .with_context(|| {
             format!(
                 "Failed to create index bucket directory: {:?}",
@@ -125,12 +126,14 @@ pub async fn insert_async<'a>(cache: &'a Path, key: &'a str, opts: WriteOpts) ->
     })
     .with_context(|| format!("Failed to serialize entry with key `{key}`"))?;
 
-    let mut buck = crate::async_lib::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(&bucket)
-        .await
-        .with_context(|| format!("Failed to create or open index bucket at {bucket:?}"))?;
+    let mut buck = shared_cache_group::open(
+        OpenOptions::new().create(true).append(true),
+        &bucket,
+        true,
+        false,
+    )
+    .map(crate::async_lib::File::from)
+    .with_context(|| format!("Failed to create or open index bucket at {bucket:?}"))?;
 
     let out = format!("\n{}\t{}", hash_entry(&stringified), stringified);
     buck.write_all(out.as_bytes())

@@ -1507,6 +1507,7 @@ dependencies = [
  "serde_json",
  "sha1 0.10.6",
  "sha2 0.10.9",
+ "shared_cache_group",
  "ssri",
  "tempfile",
  "thiserror 1.0.69",
@@ -3036,10 +3037,9 @@ dependencies = [
 [[package]]
 name = "fs-err"
 version = "3.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73fde052dbfc920003cfd2c8e2c6e6d4cc7c1091538c3a24226cec0665ab08c0"
 dependencies = [
  "autocfg",
+ "shared_cache_group",
  "tokio",
 ]
 
@@ -6655,6 +6655,7 @@ dependencies = [
  "serde",
  "serde_ignored",
  "serde_json",
+ "shared_cache_group",
  "thiserror 2.0.18",
  "toml_edit 0.23.10+spec-1.0.0",
  "tracing",
@@ -8298,6 +8299,7 @@ dependencies = [
  "rayon",
  "reqwest",
  "serde_json",
+ "shared_cache_group",
  "simple_spawn_blocking",
  "tempfile",
  "thiserror 2.0.18",
@@ -8675,6 +8677,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with",
+ "shared_cache_group",
  "simple_spawn_blocking",
  "strum",
  "superslice",
@@ -10098,6 +10101,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "shared_cache_group"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "shell-escape"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10959,14 +10969,13 @@ dependencies = [
 [[package]]
 name = "tempfile"
 version = "3.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.4.2",
+ "getrandom 0.3.4",
  "once_cell",
  "rustix 1.1.4",
- "windows-sys 0.61.2",
+ "shared_cache_group",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -11828,7 +11837,6 @@ dependencies = [
 [[package]]
 name = "uv-build-frontend"
 version = "0.0.48"
-source = "git+https://github.com/astral-sh/uv?tag=0.11.15#3cffe97c2e48c9e49422c738da3af95919dd0bf5"
 dependencies = [
  "anstream",
  "fs-err",
@@ -11839,6 +11847,7 @@ dependencies = [
  "rustc-hash",
  "serde",
  "serde_json",
+ "shared_cache_group",
  "tempfile",
  "thiserror 2.0.18",
  "tokio",
