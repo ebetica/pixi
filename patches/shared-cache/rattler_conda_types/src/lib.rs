@@ -1,0 +1,104 @@
+#![deny(missing_docs)]
+//! `rattler-conda-types` contains data models for types commonly found within
+//! the Conda ecosystem. The library itself doesn't provide any functionality
+//! besides parsing the data types.
+
+pub mod backup;
+mod build_spec;
+mod channel;
+mod channel_data;
+mod channel_notice;
+mod explicit_environment_spec;
+mod flags;
+pub mod match_spec;
+pub mod menuinst;
+mod no_arch_type;
+mod parse_mode;
+#[cfg(feature = "proptest")]
+pub mod proptest;
+mod repo_data;
+mod repo_data_record;
+mod run_export;
+pub mod subdir;
+pub mod utils;
+pub mod version_spec;
+mod virtual_package_demand;
+pub mod virtual_package_detector;
+
+pub mod compression_level;
+mod environment_yaml;
+mod generic_virtual_package;
+pub mod minimal_prefix_record;
+pub mod package;
+mod package_name;
+pub mod prefix;
+pub mod prefix_data;
+pub mod prefix_record;
+mod record_traits;
+
+#[cfg(test)]
+use std::path::{Path, PathBuf};
+
+pub use build_spec::{BuildNumber, BuildNumberSpec, OrdOperator, ParseBuildNumberSpecError};
+pub use channel::{Channel, ChannelConfig, ChannelUrl, NamedChannelOrUrl, ParseChannelError};
+pub use channel_data::{ChannelData, ChannelDataPackage};
+pub use channel_notice::{ChannelNotice, ChannelNoticeLevel, ChannelNotices};
+pub use environment_yaml::{EnvironmentYaml, MatchSpecOrSubSection};
+pub use explicit_environment_spec::{
+    ExplicitEnvironmentEntry, ExplicitEnvironmentSpec, PackageArchiveHash,
+    ParseExplicitEnvironmentSpecError, ParsePackageArchiveHashError,
+};
+pub use flags::{Flag, InvalidFlagError};
+pub use generic_virtual_package::GenericVirtualPackage;
+pub use match_spec::condition::MatchSpecCondition;
+pub use match_spec::package_name_matcher::{PackageNameMatcher, PackageNameMatcherParseError};
+pub use match_spec::{
+    CanonicalMatchSpecError, MatchSpec, MatchSpecUrlError, Matches, NamelessMatchSpec,
+    matcher::{StringMatcher, StringMatcherParseError},
+    parse::ParseMatchSpecError,
+};
+pub use minimal_prefix_record::{
+    MinimalPrefixCollection, MinimalPrefixRecord, collect_minimal_prefix_records,
+};
+pub use no_arch_type::{NoArchKind, NoArchType, RawNoArchType};
+pub use package_name::{
+    InvalidPackageNameError, NormalizedPackageName, PackageName, SourcePackageName,
+};
+pub use parse_mode::{ParseMatchSpecOptions, ParseStrictnessWithNameMatcher};
+pub use prefix_data::PrefixData;
+pub use prefix_record::PrefixRecord;
+#[cfg(feature = "semver")]
+pub use rattler_conda_version::version::VersionToSemverError;
+pub use rattler_conda_version::version::{
+    Component, ParseVersionError, ParseVersionErrorKind, StrictVersion, VersionBumpError,
+    VersionBumpType, VersionExtendError, VersionWithSource,
+};
+pub use rattler_conda_version::version_spec::{
+    EqualityOperator, LogicalOperator, ParseConstraintError, ParseVersionSpecError, RangeOperator,
+    StrictRangeOperator, VersionOperators,
+};
+pub use rattler_conda_version::{ParseStrictness, Version, VersionSpec};
+pub use record_traits::{HasArtifactDigestRefs, HasArtifactIdentificationRefs};
+pub use repo_data::{
+    ChannelInfo, ChannelRelations, ConvertSubdirError, MAX_REPODATA_REVISION_MESSAGE_BYTES,
+    PackageRecord, RecordFromPath, RepoData, RepodataRevision, RepodataRevisionInfo,
+    RepodataRevisionMetadata, RepodataRevisionSelection, RepodataRevisions,
+    ReservedV3ExtensionError, SubdirRunExportsJson, UrlOrPath, V3Extensions, V3Packages,
+    ValidatePackageRecordsError, WhlPackageRecord, compute_package_url,
+    patches::{PackageRecordPatch, PatchInstructions, RepoDataPatch},
+    sharded::{Shard, ShardedRepodata, ShardedSubdirInfo},
+};
+pub use repo_data_record::{RepoDataRecord, SolverResult};
+pub use run_export::RunExportKind;
+pub use subdir::{Arch, ParseArchError, ParseSubdirError, Subdir};
+pub use virtual_package_demand::referenced_virtual_packages;
+pub use virtual_package_detector::{DetectorRegistrationMetadata, VirtualPackageName};
+
+/// An package identifier that can be used to identify packages across package
+/// ecosystems.
+pub type PackageUrl = purl::GenericPurl<String>;
+
+#[cfg(test)]
+pub(crate) fn get_test_data_dir() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../test-data")
+}

@@ -1,0 +1,1020 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [0.56.2](https://github.com/conda/rattler/compare/rattler_conda_types-v0.56.1...rattler_conda_types-v0.56.2) - 2026-10-07
+
+### Fixed
+
+- include optional dependencies in virtual package demand ([#2912](https://github.com/conda/rattler/pull/2912))
+
+### Other
+
+- bump rust to 1.98.1 ([#2906](https://github.com/conda/rattler/pull/2906))
+
+## [0.56.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.56.0...rattler_conda_types-v0.56.1) - 2026-10-05
+
+### Added
+
+- add rattler_virtual_package_detectors ([#2863](https://github.com/conda/rattler/pull/2863))
+
+## [0.56.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.55.0...rattler_conda_types-v0.56.0) - 2026-10-05
+
+### Added
+
+- *(conda-types)* parse virtual package detector registrations ([#2859](https://github.com/conda/rattler/pull/2859))
+- Implementation offsets in paths.json ([#2565](https://github.com/conda/rattler/pull/2565))
+- emit consistent v3 repodata ([#2668](https://github.com/conda/rattler/pull/2668))
+- add freebsd-ppc64le and freebsd-ppc64 subdirs ([#2768](https://github.com/conda/rattler/pull/2768))
+
+### Fixed
+
+- handle empty channel specifiers ([#2737](https://github.com/conda/rattler/pull/2737))
+- *(rattler_conda_types)* keep backslashes in file names when serializing paths on Unix ([#2878](https://github.com/conda/rattler/pull/2878))
+
+## [0.55.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.54.0...rattler_conda_types-v0.55.0) - 2026-09-29
+
+### Added
+
+- *(sigstore)* add FulcioCiClaims from `1.3.6.1.4.1.57264.1` ([#2844](https://github.com/conda/rattler/pull/2844))
+
+### Other
+
+- [**breaking**] rename Platform to Subdir and validate names against CEP 26 ([#2787](https://github.com/conda/rattler/pull/2787))
+
+## [0.54.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.53.0...rattler_conda_types-v0.54.0) - 2026-09-23
+
+### Added
+
+- add standalone Sigstore attestation verification ([#2794](https://github.com/conda/rattler/pull/2794))
+- Add attestations to PackageRecord and rattler-index/upload ([#2773](https://github.com/conda/rattler/pull/2773))
+
+## [0.53.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.52.1...rattler_conda_types-v0.53.0) - 2026-09-17
+
+### Added
+
+- *(rattler_conda_types)* Add indexed_timestamp ([#2790](https://github.com/conda/rattler/pull/2790))
+
+### Fixed
+
+- keep v3-only extra dependencies in legacy repodata ([#2809](https://github.com/conda/rattler/pull/2809))
+- *(rattler_conda_types)* load prefix records in a deterministic order ([#2782](https://github.com/conda/rattler/pull/2782))
+
+### Other
+
+- [**breaking**] Remove timestamp_for_indexing function ([#2799](https://github.com/conda/rattler/pull/2799))
+- [**breaking**] remove Platform::Unknown, make Platform::current() return Option ([#2786](https://github.com/conda/rattler/pull/2786))
+
+## [0.52.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.52.0...rattler_conda_types-v0.52.1) - 2026-08-27
+
+### Other
+
+- updated the following local packages: rattler_redaction
+
+## [0.52.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.51.0...rattler_conda_types-v0.52.0) - 2026-08-26
+
+### Added
+
+- expose proptest strategies for conda types ([#2695](https://github.com/conda/rattler/pull/2695))
+
+### Fixed
+
+- keep legacy-compatible extra_depends in legacy repodata ([#2721](https://github.com/conda/rattler/pull/2721))
+- canonicalize MatchSpecs in v3 repodata ([#2718](https://github.com/conda/rattler/pull/2718))
+
+### Other
+
+- rename CEP 146 to CEP 48 ([#2717](https://github.com/conda/rattler/pull/2717))
+- extract conda version handling into its own crate ([#2714](https://github.com/conda/rattler/pull/2714))
+
+## [0.51.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.50.0...rattler_conda_types-v0.51.0) - 2026-08-21
+
+### Added
+
+- add the CEP 48 repodata wire model ([#2669](https://github.com/conda/rattler/pull/2669))
+
+### Fixed
+
+- recover merged CEP 48 PRs (#2674, #2673, #2670)
+
+## [0.50.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.49.1...rattler_conda_types-v0.50.0) - 2026-08-15
+
+### Added
+
+- adding emscripten-wasm64 platform ([#2680](https://github.com/conda/rattler/pull/2680))
+
+## [0.49.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.49.0...rattler_conda_types-v0.49.1) - 2026-08-11
+
+### Added
+
+- *(rattler_conda_types)* convert to and from `semver::Version` ([#2641](https://github.com/conda/rattler/pull/2641))
+- add CEP-6 channel notice support ([#2639](https://github.com/conda/rattler/pull/2639))
+
+## [0.49.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.48.1...rattler_conda_types-v0.49.0) - 2026-07-24
+
+### Added
+
+- add iOS and Android subdirs and __ios/__android virtual packages ([#2613](https://github.com/conda/rattler/pull/2613))
+
+### Fixed
+
+- render build only match specs with a version placeholder ([#2610](https://github.com/conda/rattler/pull/2610))
+- keep trailing underscores in matchspec versions ([#2606](https://github.com/conda/rattler/pull/2606))
+
+## [0.48.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.48.0...rattler_conda_types-v0.48.1) - 2026-07-14
+
+### Other
+
+- update dependencies ([#2589](https://github.com/conda/rattler/pull/2589))
+
+## [0.48.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.47.2...rattler_conda_types-v0.48.0) - 2026-07-09
+
+### Added
+
+- *(channel)* add non-panicking Channel::try_from_directory ([#2556](https://github.com/conda/rattler/pull/2556))
+
+### Fixed
+
+- accept quoted extras lists and enforce CEP 44 group names ([#2552](https://github.com/conda/rattler/pull/2552))
+- make shard creation deterministic ([#2553](https://github.com/conda/rattler/pull/2553))
+
+## [0.47.2](https://github.com/conda/rattler/compare/rattler_conda_types-v0.47.1...rattler_conda_types-v0.47.2) - 2026-06-17
+
+### Other
+
+- speed up version, version-spec and match-spec parsing ([#2515](https://github.com/conda/rattler/pull/2515))
+
+## [0.47.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.47.0...rattler_conda_types-v0.47.1) - 2026-06-09
+
+### Fixed
+
+- (de)serialize `info.repodata_revisions` as dictionary ([#2485](https://github.com/conda/rattler/pull/2485))
+
+## [0.47.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.46.4...rattler_conda_types-v0.47.0) - 2026-06-02
+
+### Added
+
+- only walk active extras when fetching repodata ([#2447](https://github.com/conda/rattler/pull/2447))
+
+### Fixed
+
+- make sdist PEP 625 conformant and trim test data ([#2470](https://github.com/conda/rattler/pull/2470))
+
+### Other
+
+- Merge commit from fork
+- graduate extras, conditionals, and flags from experimental ([#2450](https://github.com/conda/rattler/pull/2450))
+- replace `chrono` with `jiff` ([#1905](https://github.com/conda/rattler/pull/1905))
+- update some crates (sigstore, md5, sha2, ...) ([#2444](https://github.com/conda/rattler/pull/2444))
+
+## [0.46.4](https://github.com/conda/rattler/compare/rattler_conda_types-v0.46.3...rattler_conda_types-v0.46.4) - 2026-05-19
+
+### Fixed
+
+- reject path traversal in python entrypoints ([#2445](https://github.com/conda/rattler/pull/2445))
+
+## [0.46.3](https://github.com/conda/rattler/compare/rattler_conda_types-v0.46.2...rattler_conda_types-v0.46.3) - 2026-05-19
+
+### Added
+
+- channel index options (TOML) for `rattler-index` ([#2390](https://github.com/conda/rattler/pull/2390))
+
+### Fixed
+
+- render conditional `when` dependencies as defined in CEP 43 ([#2436](https://github.com/conda/rattler/pull/2436))
+
+## [0.46.2](https://github.com/conda/rattler/compare/rattler_conda_types-v0.46.1...rattler_conda_types-v0.46.2) - 2026-05-13
+
+### Other
+
+- bump Rust edition to 2024 ([#2429](https://github.com/conda/rattler/pull/2429))
+- remove reqwest 0.12 ([#2427](https://github.com/conda/rattler/pull/2427))
+
+## [0.46.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.46.0...rattler_conda_types-v0.46.1) - 2026-05-07
+
+### Other
+
+- updated the following local packages: rattler_redaction
+
+## [0.46.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.45.0...rattler_conda_types-v0.46.0) - 2026-05-01
+
+### Added
+
+- [**breaking**] lockfile v7 ([#2348](https://github.com/conda/rattler/pull/2348))
+
+## [0.45.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.44.6...rattler_conda_types-v0.45.0) - 2026-04-30
+
+### Added
+
+- implement simplified variant selection with `flags` ([#2381](https://github.com/conda/rattler/pull/2381))
+- add repodata revisions as proposed in CEP ([#2379](https://github.com/conda/rattler/pull/2379))
+- add support for CEP-42 channel relations in repodata ([#2370](https://github.com/conda/rattler/pull/2370))
+
+### Fixed
+
+- skip serializing v3 packages in shards if empty ([#2388](https://github.com/conda/rattler/pull/2388))
+- make build string matching case-insensitive (CEP-29) ([#2386](https://github.com/conda/rattler/pull/2386))
+- ordering of dev and post components ([#2299](https://github.com/conda/rattler/pull/2299))
+
+### Other
+
+- revert lockfile-v7 ([#2339](https://github.com/conda/rattler/pull/2339))
+- Added a getting started explainer to README ([#2334](https://github.com/conda/rattler/pull/2334))
+
+## [0.44.6](https://github.com/conda/rattler/compare/rattler_conda_types-v0.44.5...rattler_conda_types-v0.44.6) - 2026-04-13
+
+### Other
+
+- lock-file v7 ([#2026](https://github.com/conda/rattler/pull/2026))
+- reduce size of PackageName and MatchSpec ([#2322](https://github.com/conda/rattler/pull/2322))
+
+## [0.44.5](https://github.com/conda/rattler/compare/rattler_conda_types-v0.44.4...rattler_conda_types-v0.44.5) - 2026-04-08
+
+### Added
+
+- parse and evaluate license_family in MatchSpec ([#2175](https://github.com/conda/rattler/pull/2175))
+
+### Fixed
+
+- StrictVersion Ord contract violation ([#2225](https://github.com/conda/rattler/pull/2225))
+
+## [0.44.4](https://github.com/conda/rattler/compare/rattler_conda_types-v0.44.3...rattler_conda_types-v0.44.4) - 2026-04-07
+
+### Added
+
+- Implement `rattler list` subcommand (and smaller `PrefixData` improvements) ([#2266](https://github.com/conda/rattler/pull/2266))
+
+## [0.44.3](https://github.com/conda/rattler/compare/rattler_conda_types-v0.44.2...rattler_conda_types-v0.44.3) - 2026-03-25
+
+### Added
+
+- add `SourcePackageName` and `NormalizedPackageName` ([#2284](https://github.com/conda/rattler/pull/2284))
+
+## [0.44.2](https://github.com/conda/rattler/compare/rattler_conda_types-v0.44.1...rattler_conda_types-v0.44.2) - 2026-03-20
+
+### Added
+
+- implement lazy PrefixData primitive with tests ([#2074](https://github.com/conda/rattler/pull/2074))
+
+## [0.44.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.44.0...rattler_conda_types-v0.44.1) - 2026-03-18
+
+### Other
+
+- update Cargo.toml dependencies
+
+## [0.44.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.43.5...rattler_conda_types-v0.44.0) - 2026-03-16
+
+### Added
+
+- add FreeBSD 32-bit and ARM64 platform support ([#2227](https://github.com/conda/rattler/pull/2227))
+- Add support for downloading info files via range requests ([#1935](https://github.com/conda/rattler/pull/1935))
+- [**breaking**] Make name in MatchSpec non-optional ([#2132](https://github.com/conda/rattler/pull/2132))
+
+### Fixed
+
+- keep removed package metadata in repodata ([#2210](https://github.com/conda/rattler/pull/2210))
+
+## [0.43.5](https://github.com/conda/rattler/compare/rattler_conda_types-v0.43.4...rattler_conda_types-v0.43.5) - 2026-02-25
+
+### Other
+
+- experimental repodata v3 ([#2093](https://github.com/conda/rattler/pull/2093))
+
+## [0.43.4](https://github.com/conda/rattler/compare/rattler_conda_types-v0.43.3...rattler_conda_types-v0.43.4) - 2026-02-20
+
+### Fixed
+
+- track features package record ordering ([#2092](https://github.com/conda/rattler/pull/2092))
+
+## [0.43.3](https://github.com/conda/rattler/compare/rattler_conda_types-v0.43.2...rattler_conda_types-v0.43.3) - 2026-02-19
+
+### Added
+
+- implement comparison and hashing for `PackageRecord` types ([#2046](https://github.com/conda/rattler/pull/2046))
+
+### Fixed
+
+- gracefully handle missing `$HOME` in file backend ([#2065](https://github.com/conda/rattler/pull/2065))
+
+### Other
+
+- speed up matchspec parsing ([#2066](https://github.com/conda/rattler/pull/2066))
+- use `when` syntax instead of `; if` ([#2007](https://github.com/conda/rattler/pull/2007))
+- optimized repodata loading ([#2058](https://github.com/conda/rattler/pull/2058))
+- Typo and clippy fixes ([#2047](https://github.com/conda/rattler/pull/2047))
+
+## [0.43.2](https://github.com/conda/rattler/compare/rattler_conda_types-v0.43.1...rattler_conda_types-v0.43.2) - 2026-02-04
+
+### Added
+
+- Add CACHEDIR.TAG to environments and global cache ([#2011](https://github.com/conda/rattler/pull/2011))
+
+## [0.43.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.43.0...rattler_conda_types-v0.43.1) - 2026-01-22
+
+### Added
+
+- add support for `packages.whl` to repodata parsing ([#1996](https://github.com/conda/rattler/pull/1996))
+
+## [0.43.0](https://github.com/baszalmstra/rattler/releases/tag/rattler_conda_types-v0.43.0) - 2026-01-22
+
+### Added
+
+- add support for `packages.whl` and wheel archives types ([#1988](https://github.com/baszalmstra/rattler/pull/1988))
+- add support for track_features in matchspec brackets (Fixes #1964) ([#1968](https://github.com/baszalmstra/rattler/pull/1968))
+
+### Fixed
+
+- changelog
+- correctly handle channel_alias with path segments ([#1953](https://github.com/baszalmstra/rattler/pull/1953)) ([#1954](https://github.com/baszalmstra/rattler/pull/1954))
+
+### Other
+
+- release ([#2001](https://github.com/baszalmstra/rattler/pull/2001))
+- add type for archive file name ([#1999](https://github.com/baszalmstra/rattler/pull/1999))
+- Run `cargo clippy --fix` (from nightly) ([#1992](https://github.com/baszalmstra/rattler/pull/1992))
+- rename `loong64` to `loongarch64` ([#1957](https://github.com/baszalmstra/rattler/pull/1957))
+
+## [0.42.5](https://github.com/conda/rattler/compare/rattler_conda_types-v0.42.4...rattler_conda_types-v0.42.5) - 2026-01-22
+
+### Added
+
+- add support for `packages.whl` and wheel archives types ([#1988](https://github.com/conda/rattler/pull/1988))
+- add support for track_features in matchspec brackets (Fixes #1964) ([#1968](https://github.com/conda/rattler/pull/1968))
+
+### Fixed
+
+- correctly handle channel_alias with path segments ([#1953](https://github.com/conda/rattler/pull/1953)) ([#1954](https://github.com/conda/rattler/pull/1954))
+
+### Other
+
+- add type for archive file name ([#1999](https://github.com/conda/rattler/pull/1999))
+- Run `cargo clippy --fix` (from nightly) ([#1992](https://github.com/conda/rattler/pull/1992))
+- rename `loong64` to `loongarch64` ([#1957](https://github.com/conda/rattler/pull/1957))
+
+## [0.42.4](https://github.com/conda/rattler/compare/rattler_conda_types-v0.42.3...rattler_conda_types-v0.42.4) - 2025-12-18
+
+### Added
+
+- add common function to extract package name from matchspec ([#1923](https://github.com/conda/rattler/pull/1923))
+
+### Fixed
+
+- always emit depends in index.json ([#1932](https://github.com/conda/rattler/pull/1932))
+- regression in `Version::starts_with` ([#1920](https://github.com/conda/rattler/pull/1920))
+
+### Other
+
+- update README.md with new banner image ([#1926](https://github.com/conda/rattler/pull/1926))
+
+## [0.42.3](https://github.com/conda/rattler/compare/rattler_conda_types-v0.42.2...rattler_conda_types-v0.42.3) - 2025-12-08
+
+### Fixed
+
+- topological sort looses nodes when they are in independent clusters ([#1913](https://github.com/conda/rattler/pull/1913))
+
+### Other
+
+- bump crates ([#1902](https://github.com/conda/rattler/pull/1902))
+
+## [0.42.2](https://github.com/conda/rattler/compare/rattler_conda_types-v0.42.1...rattler_conda_types-v0.42.2) - 2025-11-27
+
+### Other
+
+- update Cargo.toml dependencies
+
+## [0.42.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.42.0...rattler_conda_types-v0.42.1) - 2025-11-25
+
+### Added
+
+- *(rattler_conda_types)* use `fancy_regex` for matchers ([#1885](https://github.com/conda/rattler/pull/1885))
+
+## [0.42.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.41.2...rattler_conda_types-v0.42.0) - 2025-11-22
+
+### Added
+
+- improve error messages for glob and regex package names ([#1867](https://github.com/conda/rattler/pull/1867))
+
+### Other
+
+- make `extras` and `conditionals` runtime-configurable ([#1816](https://github.com/conda/rattler/pull/1816))
+
+## [0.41.2](https://github.com/conda/rattler/compare/rattler_conda_types-v0.41.1...rattler_conda_types-v0.41.2) - 2025-11-20
+
+### Added
+
+- implement From<T> for PackageNameMatcher variants ([#1861](https://github.com/conda/rattler/pull/1861))
+
+## [0.41.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.41.0...rattler_conda_types-v0.41.1) - 2025-11-19
+
+### Added
+
+- add accessor methods to PackageNameMatcher ([#1857](https://github.com/conda/rattler/pull/1857))
+
+## [0.41.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.40.4...rattler_conda_types-v0.41.0) - 2025-11-13
+
+### Added
+
+- Add glob support for package name in matchspec ([#1480](https://github.com/conda/rattler/pull/1480))
+- expose crate features on docs.rs ([#1835](https://github.com/conda/rattler/pull/1835))
+- parse matchspec conditions and translate to resolvo ([#1545](https://github.com/conda/rattler/pull/1545))
+
+### Fixed
+
+- omit `sha256_in_prefix` when equal to `sha256` ([#1812](https://github.com/conda/rattler/pull/1812))
+- `Version::starts_with` for versions with differing non-final component sizes ([#1791](https://github.com/conda/rattler/pull/1791))
+
+## [0.40.4](https://github.com/conda/rattler/compare/rattler_conda_types-v0.40.3...rattler_conda_types-v0.40.4) - 2025-10-28
+
+### Fixed
+
+- sort packages when serializing repodata ([#1779](https://github.com/conda/rattler/pull/1779))
+- timestamp serialization as milliseconds ([#1776](https://github.com/conda/rattler/pull/1776))
+
+### Other
+
+- Replace fxhash with ahash ([#1674](https://github.com/conda/rattler/pull/1674))
+
+## [0.40.3](https://github.com/conda/rattler/compare/rattler_conda_types-v0.40.2...rattler_conda_types-v0.40.3) - 2025-10-18
+
+### Added
+
+- make read_package_file_content public, add try_from_magic_bytes ([#1757](https://github.com/conda/rattler/pull/1757))
+
+## [0.40.2](https://github.com/conda/rattler/compare/rattler_conda_types-v0.40.1...rattler_conda_types-v0.40.2) - 2025-10-17
+
+### Fixed
+
+- use byte string instead of array for hash encoding ([#1755](https://github.com/conda/rattler/pull/1755))
+
+## [0.40.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.40.0...rattler_conda_types-v0.40.1) - 2025-10-14
+
+### Added
+
+- derive `PartialEq`, `Eq` and `Hash` for `EntryPoint` ([#1731](https://github.com/conda/rattler/pull/1731))
+
+## [0.40.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.39.3...rattler_conda_types-v0.40.0) - 2025-10-03
+
+### Added
+
+- Add freebsd-64 to platforms, add Platform.all method ([#1701](https://github.com/conda/rattler/pull/1701))
+
+### Other
+
+- *(conda_types)* reduce `MinimalPrefixRecord` read overhead ([#1697](https://github.com/conda/rattler/pull/1697))
+
+## [0.39.3](https://github.com/conda/rattler/compare/rattler_conda_types-v0.39.2...rattler_conda_types-v0.39.3) - 2025-09-30
+
+### Other
+
+- add LazyClient to late initialize the reqwest client ([#1687](https://github.com/conda/rattler/pull/1687))
+- optimize transaction operations ([#1615](https://github.com/conda/rattler/pull/1615))
+
+## [0.39.2](https://github.com/conda/rattler/compare/rattler_conda_types-v0.39.1...rattler_conda_types-v0.39.2) - 2025-09-05
+
+### Other
+
+- update Cargo.toml dependencies
+
+## [0.39.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.39.0...rattler_conda_types-v0.39.1) - 2025-09-02
+
+### Fixed
+
+- compatibility with older Artifactory repodata format ([#1599](https://github.com/conda/rattler/pull/1599))
+
+## [0.39.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.38.0...rattler_conda_types-v0.39.0) - 2025-08-15
+
+### Added
+
+- populate `requested_spec` ([#1596](https://github.com/conda/rattler/pull/1596))
+
+## [0.38.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.37.0...rattler_conda_types-v0.38.0) - 2025-08-12
+
+### Added
+
+- *(gateway)* add method to ensure `run_exports.json` ([#1540](https://github.com/conda/rattler/pull/1540))
+- implement extras with conditional dependencies ([#1542](https://github.com/conda/rattler/pull/1542))
+# Changelog
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.37.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.36.0...rattler_conda_types-v0.37.0) - 2025-07-23
+
+### Fixed
+
+- indexing `extra-depends` ([#1546](https://github.com/conda/rattler/pull/1546))
+
+## [0.36.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.35.6...rattler_conda_types-v0.36.0) - 2025-07-21
+
+### Added
+
+- make `Platform` `non_exhaustive` ([#1539](https://github.com/conda/rattler/pull/1539))
+- add support for loong64 platform to rattler ([#1534](https://github.com/conda/rattler/pull/1534))
+
+### Other
+
+- bump rust 1.88.0 ([#1536](https://github.com/conda/rattler/pull/1536))
+
+## [0.35.6](https://github.com/conda/rattler/compare/rattler_conda_types-v0.35.5...rattler_conda_types-v0.35.6) - 2025-07-14
+
+### Fixed
+
+- *(clobber registry)* directory and file clobbering ([#1497](https://github.com/conda/rattler/pull/1497))
+
+## [0.35.5](https://github.com/conda/rattler/compare/rattler_conda_types-v0.35.4...rattler_conda_types-v0.35.5) - 2025-07-09
+
+### Other
+
+- move upload from `rattler-build` to `rattler` ([#1386](https://github.com/conda/rattler/pull/1386))
+
+## [0.35.4](https://github.com/conda/rattler/compare/rattler_conda_types-v0.35.3...rattler_conda_types-v0.35.4) - 2025-07-01
+
+### Fixed
+
+- *(ci)* run pre-commit-run for all files ([#1481](https://github.com/conda/rattler/pull/1481))
+- use kebab-case ([#1482](https://github.com/conda/rattler/pull/1482))
+
+## [0.35.3](https://github.com/conda/rattler/compare/rattler_conda_types-v0.35.2...rattler_conda_types-v0.35.3) - 2025-06-26
+
+### Fixed
+
+- allow track_features to be patched to null ([#1477](https://github.com/conda/rattler/pull/1477))
+
+## [0.35.2](https://github.com/conda/rattler/compare/rattler_conda_types-v0.35.1...rattler_conda_types-v0.35.2) - 2025-06-25
+
+### Other
+
+- *(ci)* Update Rust crate criterion to 0.6 ([#1438](https://github.com/conda/rattler/pull/1438))
+
+## [0.35.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.35.0...rattler_conda_types-v0.35.1) - 2025-06-23
+
+### Added
+
+- add `rattler_config` crate (derived from `pixi_config`) ([#1389](https://github.com/conda/rattler/pull/1389))
+
+### Fixed
+
+- fix code to use nom 8
+- parsing of `=0.*,>=0.4.1` ([#1384](https://github.com/conda/rattler/pull/1384))
+
+### Other
+
+- *(ci)* Update Rust crate nom to v8 ([#1404](https://github.com/conda/rattler/pull/1404))
+- Revert "fix code to use nom 8"
+- update npm name ([#1368](https://github.com/conda/rattler/pull/1368))
+- update readme ([#1364](https://github.com/conda/rattler/pull/1364))
+
+## [0.35.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.34.0...rattler_conda_types-v0.35.0) - 2025-05-23
+
+### Added
+
+- Sharded repodata, zst, add purls and run_exports support ([#1312](https://github.com/conda/rattler/pull/1312))
+- control over selection of .conda and .tar.bz2 ([#1344](https://github.com/conda/rattler/pull/1344))
+
+### Fixed
+
+- *(py)* package count was incorrect for prefer-conda ([#1350](https://github.com/conda/rattler/pull/1350))
+- add missing `created_at` in shards ([#1343](https://github.com/conda/rattler/pull/1343))
+- properly dedup package names ([#1342](https://github.com/conda/rattler/pull/1342))
+
+## [0.34.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.33.0...rattler_conda_types-v0.34.0) - 2025-05-16
+
+### Added
+
+- add purls to `IndexJson` ([#1303](https://github.com/conda/rattler/pull/1303))
+
+### Fixed
+
+- skip serializing if purls are None ([#1306](https://github.com/conda/rattler/pull/1306))
+
+### Other
+
+- make sure that md5 also works as `CacheKey` ([#1293](https://github.com/conda/rattler/pull/1293))
+- Bump zip to 3.0.0 ([#1310](https://github.com/conda/rattler/pull/1310))
+
+## [0.33.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.32.0...rattler_conda_types-v0.33.0) - 2025-05-03
+
+### Added
+
+- add `history` file to conda-meta folder ([#1289](https://github.com/conda/rattler/pull/1289))
+
+### Fixed
+
+- menuinst windows shortcut path ([#1273](https://github.com/conda/rattler/pull/1273))
+
+### Other
+
+- lock workspace member dependencies ([#1279](https://github.com/conda/rattler/pull/1279))
+
+## [0.32.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.31.6...rattler_conda_types-v0.32.0) - 2025-04-10
+
+### Added
+
+- Add license to MatchSpec ([#1236](https://github.com/conda/rattler/pull/1236))
+
+### Fixed
+
+- MatchSpec matches if license is set ([#1247](https://github.com/conda/rattler/pull/1247))
+- add support for `asterisk (*)` in package names for `MatchSpec` ([#1245](https://github.com/conda/rattler/pull/1245))
+
+## [0.31.6](https://github.com/conda/rattler/compare/rattler_conda_types-v0.31.5...rattler_conda_types-v0.31.6) - 2025-04-04
+
+### Fixed
+
+- allow empty info key in repodata.json ([#1181](https://github.com/conda/rattler/pull/1181))
+
+### Other
+
+- add the remove_from_backup function and update the prefix ([#1155](https://github.com/conda/rattler/pull/1155))
+
+## [0.31.5](https://github.com/conda/rattler/compare/rattler_conda_types-v0.31.4...rattler_conda_types-v0.31.5) - 2025-03-14
+
+### Added
+
+- package record ([#1148](https://github.com/conda/rattler/pull/1148))
+
+## [0.31.4](https://github.com/conda/rattler/compare/rattler_conda_types-v0.31.3...rattler_conda_types-v0.31.4) - 2025-03-10
+
+### Added
+
+- Add support for repodata patching in rattler-index, fix silent failures ([#1129](https://github.com/conda/rattler/pull/1129))
+
+## [0.31.3](https://github.com/conda/rattler/compare/rattler_conda_types-v0.31.2...rattler_conda_types-v0.31.3) - 2025-03-04
+
+### Other
+
+- updated the following local packages: rattler_redaction
+
+## [0.31.2](https://github.com/conda/rattler/compare/rattler_conda_types-v0.31.1...rattler_conda_types-v0.31.2) - 2025-02-28
+
+### Fixed
+
+- roundtrip of arch/platform in lock files (#1124)
+
+## [0.31.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.31.0...rattler_conda_types-v0.31.1) - 2025-02-27
+
+### Added
+
+- Use `opendal` in `rattler-index` and add executable (#1076)
+
+## [0.31.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.30.3...rattler_conda_types-v0.31.0) - 2025-02-25
+
+### Added
+
+- add `rattler_menuinst` crate (#840)
+- initial wasm/ts/js bindings (#1079)
+
+## [0.30.3](https://github.com/conda/rattler/compare/rattler_conda_types-v0.30.2...rattler_conda_types-v0.30.3) - 2025-02-18
+
+### Added
+
+- write prefix record atomically (#1063)
+
+### Other
+
+- update dependencies (#1069)
+
+## [0.30.2](https://github.com/conda/rattler/compare/rattler_conda_types-v0.30.1...rattler_conda_types-v0.30.2) - 2025-02-06
+
+### Other
+
+- bump rust 1.84.1 (#1053)
+
+## [0.30.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.30.0...rattler_conda_types-v0.30.1) - 2025-02-03
+
+### Fixed
+
+- track feature serialization and deserialization (#1039)
+
+## [0.30.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.29.10...rattler_conda_types-v0.30.0) - 2025-01-23
+
+### Added
+
+- add linux-ppc (PPC32 BE) platform to rattler (#1024)
+
+## [0.29.10](https://github.com/conda/rattler/compare/rattler_conda_types-v0.29.9...rattler_conda_types-v0.29.10) - 2025-01-09
+
+### Added
+
+- Match GenericVirtualPackage with MatchSpec (#1016)
+
+## [0.29.9](https://github.com/conda/rattler/compare/rattler_conda_types-v0.29.8...rattler_conda_types-v0.29.9) - 2025-01-09
+
+### Added
+
+- expose ParseConstraintError (#1020)
+
+## [0.29.8](https://github.com/conda/rattler/compare/rattler_conda_types-v0.29.7...rattler_conda_types-v0.29.8) - 2025-01-08
+
+### Added
+
+- add deserialize from string for types (#1015)
+- require a range specifier for version spec in strict mode (#989)
+
+### Fixed
+
+- parsing of >=2.*.* (#1006)
+
+## [0.29.7](https://github.com/conda/rattler/compare/rattler_conda_types-v0.29.6...rattler_conda_types-v0.29.7) - 2024-12-20
+
+### Other
+
+- reflink directories at once on macOS (#995)
+- read json to memory before parsing (#991)
+
+## [0.29.6](https://github.com/conda/rattler/compare/rattler_conda_types-v0.29.5...rattler_conda_types-v0.29.6) - 2024-12-17
+
+### Added
+
+- speed up `PrefixRecord` loading (#984)
+
+## [0.29.5](https://github.com/conda/rattler/compare/rattler_conda_types-v0.29.4...rattler_conda_types-v0.29.5) - 2024-12-13
+
+### Added
+
+- derive `PartialEq` and `Eq` for `ChannelConfig` (#982)
+
+## [0.29.4](https://github.com/conda/rattler/compare/rattler_conda_types-v0.29.3...rattler_conda_types-v0.29.4) - 2024-12-12
+
+### Added
+- add `EnumIter` to `Arch` ([#972](https://github.com/conda/rattler/pull/972))
+
+## [0.29.3](https://github.com/conda/rattler/compare/rattler_conda_types-v0.29.2...rattler_conda_types-v0.29.3) - 2024-11-30
+
+### Added
+
+- merge pixi-build branch ([#950](https://github.com/conda/rattler/pull/950))
+
+### Fixed
+
+- `pixi project version` doesn't reset minor and patch version numbers ([#954](https://github.com/conda/rattler/pull/954))
+
+## [0.29.2](https://github.com/conda/rattler/compare/rattler_conda_types-v0.29.1...rattler_conda_types-v0.29.2) - 2024-11-18
+
+### Added
+
+- channel is serialized without trailing slash ([#948](https://github.com/conda/rattler/pull/948))
+
+### Other
+
+- allow `ChannelUrl` in `Channel::from_url` interface ([#944](https://github.com/conda/rattler/pull/944))
+
+## [0.29.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.29.0...rattler_conda_types-v0.29.1) - 2024-11-14
+
+### Other
+
+- enable using sharded repodata for custom channels ([#910](https://github.com/conda/rattler/pull/910))
+
+## [0.29.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.28.3...rattler_conda_types-v0.29.0) - 2024-11-04
+
+### Added
+
+- use python_site_packages_path field when available for installing noarch: python packages, CEP-17 ([#909](https://github.com/conda/rattler/pull/909))
+- Add `PackageRecord::validate` function ([#911](https://github.com/conda/rattler/pull/911))
+
+### Fixed
+
+- matchspec build / version from brackets and string serialization ([#917](https://github.com/conda/rattler/pull/917))
+
+### Other
+
+- root constraint shouldnt crash ([#916](https://github.com/conda/rattler/pull/916))
+
+## [0.28.3](https://github.com/conda/rattler/compare/rattler_conda_types-v0.28.2...rattler_conda_types-v0.28.3) - 2024-10-21
+
+### Other
+
+- updated the following local packages: file_url
+
+## [0.28.2](https://github.com/conda/rattler/compare/rattler_conda_types-v0.28.1...rattler_conda_types-v0.28.2) - 2024-10-07
+
+### Other
+
+- add snapshot tests to verify solver sorting order ([#895](https://github.com/conda/rattler/pull/895))
+
+## [0.28.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.28.0...rattler_conda_types-v0.28.1) - 2024-10-03
+
+### Fixed
+
+- topological sort when cycles appear in leaf nodes ([#879](https://github.com/conda/rattler/pull/879))
+
+## [0.28.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.27.6...rattler_conda_types-v0.28.0) - 2024-09-23
+
+### Added
+
+- add path to namedchannelorurl ([#873](https://github.com/conda/rattler/pull/873))
+- add serialization for `GenericVirtualPackage` ([#865](https://github.com/conda/rattler/pull/865))
+
+### Fixed
+
+- improve when we print brackets ([#861](https://github.com/conda/rattler/pull/861))
+
+## [0.27.6](https://github.com/conda/rattler/compare/rattler_conda_types-v0.27.5...rattler_conda_types-v0.27.6) - 2024-09-09
+
+### Fixed
+
+- publish `MatchSpecOrSubSection` for env yaml ([#855](https://github.com/conda/rattler/pull/855))
+
+## [0.27.5](https://github.com/conda/rattler/compare/rattler_conda_types-v0.27.4...rattler_conda_types-v0.27.5) - 2024-09-05
+
+### Fixed
+- typos ([#849](https://github.com/conda/rattler/pull/849))
+
+## [0.27.4](https://github.com/conda/rattler/compare/rattler_conda_types-v0.27.3...rattler_conda_types-v0.27.4) - 2024-09-03
+
+### Other
+- make PackageCache multi-process safe ([#837](https://github.com/conda/rattler/pull/837))
+
+## [0.27.3](https://github.com/conda/rattler/compare/rattler_conda_types-v0.27.2...rattler_conda_types-v0.27.3) - 2024-09-02
+
+### Added
+- add edge case tests for `StringMatcher` ([#839](https://github.com/conda/rattler/pull/839))
+
+## [0.27.2](https://github.com/conda/rattler/compare/rattler_conda_types-v0.27.1...rattler_conda_types-v0.27.2) - 2024-08-15
+
+### Added
+- add extra field ([#811](https://github.com/conda/rattler/pull/811))
+- parse `channel` key and consolidate `NamelessMatchSpec` ([#810](https://github.com/conda/rattler/pull/810))
+
+### Fixed
+- move more links to the conda org from conda-incubator ([#816](https://github.com/conda/rattler/pull/816))
+- use conda-incubator
+
+### Other
+- change links from conda-incubator to conda ([#813](https://github.com/conda/rattler/pull/813))
+- update banner ([#808](https://github.com/conda/rattler/pull/808))
+
+## [0.27.1](https://github.com/baszalmstra/rattler/compare/rattler_conda_types-v0.27.0...rattler_conda_types-v0.27.1) - 2024-08-06
+
+### Fixed
+- parse `~=` as version not as path ([#804](https://github.com/baszalmstra/rattler/pull/804))
+
+## [0.27.0](https://github.com/baszalmstra/rattler/compare/rattler_conda_types-v0.26.3...rattler_conda_types-v0.27.0) - 2024-08-02
+
+### Fixed
+- redact secrets in the `canonical_name` functions ([#801](https://github.com/baszalmstra/rattler/pull/801))
+- make `base_url` of `Channel` always contain a trailing slash ([#800](https://github.com/baszalmstra/rattler/pull/800))
+- parse channel in matchspec string ([#792](https://github.com/baszalmstra/rattler/pull/792))
+- constraints on virtual packages were ignored ([#795](https://github.com/baszalmstra/rattler/pull/795))
+- url parsing for namelessmatchspec and cleanup functions ([#790](https://github.com/baszalmstra/rattler/pull/790))
+
+### Other
+- mark some crates 1.0 ([#789](https://github.com/baszalmstra/rattler/pull/789))
+
+## [0.26.3](https://github.com/conda/rattler/compare/rattler_conda_types-v0.26.2...rattler_conda_types-v0.26.3) - 2024-07-23
+
+### Fixed
+- channel `base_url` requires trailing slash ([#787](https://github.com/conda/rattler/pull/787))
+
+## [0.26.2](https://github.com/conda/rattler/compare/rattler_conda_types-v0.26.1...rattler_conda_types-v0.26.2) - 2024-07-23
+
+### Added
+- `environment.yaml` type ([#786](https://github.com/conda/rattler/pull/786))
+- Add to_path() method to ExplicitEnvironmentSpec ([#781](https://github.com/conda/rattler/pull/781))
+- expose `HasPrefixEntry` for public use ([#784](https://github.com/conda/rattler/pull/784))
+
+## [0.26.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.26.0...rattler_conda_types-v0.26.1) - 2024-07-15
+
+### Other
+- PrefixRecord deserialization using simd ([#777](https://github.com/conda/rattler/pull/777))
+
+## [0.26.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.25.2...rattler_conda_types-v0.26.0) - 2024-07-08
+
+### Added
+- add support for zos-z ([#753](https://github.com/conda/rattler/pull/753))
+- return pybytes for sha256 and md5 everywhere and use md5 hash for legacy bz2 md5 ([#752](https://github.com/conda/rattler/pull/752))
+- add direct url repodata building ([#725](https://github.com/conda/rattler/pull/725))
+- add shards_base_url and write shards atomically ([#747](https://github.com/conda/rattler/pull/747))
+
+### Fixed
+- allow version following package in strict mode ([#770](https://github.com/conda/rattler/pull/770))
+- Fix doctests and start testing them again ([#767](https://github.com/conda/rattler/pull/767))
+- skip over implicit `0` components when copying ([#760](https://github.com/conda/rattler/pull/760))
+- allow empty json repodata ([#745](https://github.com/conda/rattler/pull/745))
+- lenient and strict parsing of equality signs ([#738](https://github.com/conda/rattler/pull/738))
+- This fixes parsing of `ray[default,data] >=2.9.0,<3.0.0` ([#732](https://github.com/conda/rattler/pull/732))
+
+## [0.25.2](https://github.com/baszalmstra/rattler/compare/rattler_conda_types-v0.25.1...rattler_conda_types-v0.25.2) - 2024-06-04
+
+### Added
+- parse url and path as matchspec ([#704](https://github.com/baszalmstra/rattler/pull/704))
+
+### Fixed
+- issue 722 ([#723](https://github.com/baszalmstra/rattler/pull/723))
+
+### Other
+- remove lfs ([#512](https://github.com/baszalmstra/rattler/pull/512))
+- move the cache tooling into its own crate for reuse downstream ([#721](https://github.com/baszalmstra/rattler/pull/721))
+
+## [0.25.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.25.0...rattler_conda_types-v0.25.1) - 2024-06-03
+
+### Added
+- add a `with_alpha` function that adds `0a0` to the version ([#696](https://github.com/conda/rattler/pull/696))
+
+## [0.25.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.24.0...rattler_conda_types-v0.25.0) - 2024-05-28
+
+### Added
+- when bumping, extend versions with `0` to match the bump request ([#695](https://github.com/conda/rattler/pull/695))
+- extend tests and handle characters better when bumping versions ([#694](https://github.com/conda/rattler/pull/694))
+- add a function to extend version with `0s` ([#689](https://github.com/conda/rattler/pull/689))
+- add run exports to package data ([#671](https://github.com/conda/rattler/pull/671))
+
+### Fixed
+- lenient parsing of 2023.*.* ([#688](https://github.com/conda/rattler/pull/688))
+- VersionSpec starts with, with trailing zeros ([#686](https://github.com/conda/rattler/pull/686))
+
+### Other
+- move bump implementation to bump.rs and simplify tests ([#692](https://github.com/conda/rattler/pull/692))
+
+## [0.24.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.23.1...rattler_conda_types-v0.24.0) - 2024-05-27
+
+### Added
+- removed Ord and more ([#673](https://github.com/conda/rattler/pull/673))
+- always store purls as a key in lock file ([#669](https://github.com/conda/rattler/pull/669))
+- add solve strategies ([#660](https://github.com/conda/rattler/pull/660))
+
+### Fixed
+- make topological sorting support fully cyclic dependencies ([#678](https://github.com/conda/rattler/pull/678))
+
+## [0.23.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.23.0...rattler_conda_types-v0.23.1) - 2024-05-14
+
+### Added
+- exclude repodata records based on timestamp ([#654](https://github.com/conda/rattler/pull/654))
+
+## [0.23.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.22.1...rattler_conda_types-v0.23.0) - 2024-05-13
+
+### Added
+- high level repodata access ([#560](https://github.com/conda/rattler/pull/560))
+
+### Other
+- update README.md
+
+## [0.22.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.22.0...rattler_conda_types-v0.22.1) - 2024-05-06
+
+### Added
+- expose `*Record.noarch` in Python bindings ([#635](https://github.com/conda/rattler/pull/635))
+
+## [0.22.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.21.0...rattler_conda_types-v0.22.0) - 2024-04-25
+
+### Added
+- add support for extracting prefix placeholder data to PathsEntry ([#614](https://github.com/conda/rattler/pull/614))
+
+## [0.21.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.20.5...rattler_conda_types-v0.21.0) - 2024-04-19
+
+### Added
+- make root dir configurable in channel config ([#602](https://github.com/conda/rattler/pull/602))
+
+### Fixed
+- better value for `link` field ([#610](https://github.com/conda/rattler/pull/610))
+
+### Other
+- update dependencies incl. reqwest ([#606](https://github.com/conda/rattler/pull/606))
+
+## [0.20.5](https://github.com/baszalmstra/rattler/compare/rattler_conda_types-v0.20.4...rattler_conda_types-v0.20.5) - 2024-04-05
+
+### Fixed
+- run post-link scripts ([#574](https://github.com/baszalmstra/rattler/pull/574))
+
+## [0.20.4](https://github.com/conda/rattler/compare/rattler_conda_types-v0.20.3...rattler_conda_types-v0.20.4) - 2024-03-30
+
+### Fixed
+- matchspec empty namespace and channel canonical name ([#582](https://github.com/conda/rattler/pull/582))
+
+## [0.20.3](https://github.com/conda/rattler/compare/rattler_conda_types-v0.20.2...rattler_conda_types-v0.20.3) - 2024-03-21
+
+### Fixed
+- allow not starts with in strict mode ([#577](https://github.com/conda/rattler/pull/577))
+
+## [0.20.2](https://github.com/conda/rattler/compare/rattler_conda_types-v0.20.1...rattler_conda_types-v0.20.2) - 2024-03-14
+
+### Other
+- add pixi badge ([#563](https://github.com/conda/rattler/pull/563))
+
+## [0.20.1](https://github.com/conda/rattler/compare/rattler_conda_types-v0.20.0...rattler_conda_types-v0.20.1) - 2024-03-08
+
+### Fixed
+- chrono deprecation warnings ([#558](https://github.com/conda/rattler/pull/558))
+
+## [0.20.0](https://github.com/conda/rattler/compare/rattler_conda_types-v0.19.0...rattler_conda_types-v0.20.0) - 2024-03-06
+
+### Added
+- [**breaking**] optional strict parsing of matchspec and versionspec ([#552](https://github.com/conda/rattler/pull/552))
+
+### Fixed
+- patch unsupported glob operators ([#551](https://github.com/conda/rattler/pull/551))
+- dont use workspace dependencies for local crates ([#546](https://github.com/conda/rattler/pull/546))
+
+### Other
+- every crate should have its own version ([#557](https://github.com/conda/rattler/pull/557))
+
+## [0.19.0](https://github.com/baszalmstra/rattler/compare/rattler_conda_types-v0.18.0...rattler_conda_types-v0.19.0) - 2024-02-26
+
+### Fixed
+- Fix arch for osx-arm64 and win-arm64 ([#528](https://github.com/baszalmstra/rattler/pull/528))
+- Channel name display ([#531](https://github.com/baszalmstra/rattler/pull/531))
