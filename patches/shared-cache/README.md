@@ -26,6 +26,27 @@ The setup the fix assumes: a cache directory owned by a shared group with the
 setgid bit (`chgrp pixi-users $DIR && chmod 2775 $DIR`), and users running with
 `umask 002`.
 
+## Installing
+
+```bash
+curl -fsSL https://github.com/ebetica/pixi/releases/latest/download/install.sh | sh
+# point the user at a shared cache too (adds `export PIXI_CACHE_DIR=...` to the shell rc):
+curl -fsSL https://github.com/ebetica/pixi/releases/latest/download/install.sh \
+  | PIXI_SHARED_CACHE_DIR=/shared/pixi-cache sh
+```
+
+The installer is `install/install-shared-cache.sh`. It installs into `~/.pixi/bin`,
+replacing an upstream pixi there. It checks the release checksum and warns if the
+cache directory or your umask will not work for sharing. Only Linux x86_64
+builds exist so far.
+
+## Releasing
+
+Tag the rebased branch `v<version>-shared-cache`, then attach these release assets:
+`pixi-x86_64-unknown-linux-musl.tar.gz`, its `.sha256`, and
+`install/install-shared-cache.sh` renamed to `install.sh`. Mark the release
+as latest.
+
 ## Rebasing onto a new pixi release
 
 ```bash
