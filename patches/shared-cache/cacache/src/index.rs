@@ -86,7 +86,7 @@ pub fn insert(cache: &Path, key: &str, opts: WriteOpts) -> Result<Integrity> {
     })
     .with_context(|| format!("Failed to serialize entry with key `{key}`"))?;
 
-    let mut buck = shared_cache_group::open(
+    let mut buck = shared_cache_perms::open(
         OpenOptions::new().create(true).append(true),
         &bucket,
         true,
@@ -126,7 +126,7 @@ pub async fn insert_async<'a>(cache: &'a Path, key: &'a str, opts: WriteOpts) ->
     })
     .with_context(|| format!("Failed to serialize entry with key `{key}`"))?;
 
-    let mut buck = shared_cache_group::open(
+    let mut buck = shared_cache_perms::open(
         OpenOptions::new().create(true).append(true),
         &bucket,
         true,

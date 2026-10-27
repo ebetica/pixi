@@ -415,12 +415,11 @@ pub struct CacheConfig {
     #[serde(default, skip_serializing_if = "NetfsRedirect::is_default")]
     pub netfs_redirect: NetfsRedirect,
 
-    /// Unix group (name or id) that shares the cache between users. When
-    /// set, directories pixi creates in the cache are owned by this group
-    /// with mode `2775`, and files are group read/write, whatever the umask.
-    /// Detached environments are not shared.
+    /// Share the cache between all users of the host: directories pixi
+    /// creates in the cache get mode `0777` and files `0666`, whatever the
+    /// umask. Detached environments are not shared.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub shared_group: Option<String>,
+    pub shared: Option<bool>,
 }
 
 impl CacheConfig {
@@ -460,7 +459,7 @@ impl CacheConfig {
             } else {
                 other.netfs_redirect
             },
-            shared_group: other.shared_group.or(self.shared_group),
+            shared: other.shared.or(self.shared),
         }
     }
 
@@ -667,43 +666,38 @@ fn resolve_cache_kind_dir(cache_cfg: &CacheConfig, kind: CacheKind) -> miette::R
     Ok(redirected)
 }
 
-/// The group named by `PIXI_CACHE_SHARED_GROUP`, else `[cache.shared-group]`.
-fn shared_cache_group_name(cache_cfg: &CacheConfig) -> Option<String> {
-    std::env::var("PIXI_CACHE_SHARED_GROUP")
-        .ok()
-        .filter(|v| !v.is_empty())
-        .or_else(|| cache_cfg.shared_group.clone())
+/// Whether the cache is shared: `PIXI_CACHE_SHARED` if it is set, else
+/// `[cache.shared]`.
+fn cache_is_shared(cache_cfg: &CacheConfig) -> bool {
+    let from_config = cache_cfg.shared.unwrap_or(false);
+    let Ok(value) = std::env::var("PIXI_CACHE_SHARED") else {
+        return from_config;
+    };
+    match value.trim().to_ascii_lowercase().as_str() {
+        "1" | "true" | "yes" | "on" => true,
+        "" | "0" | "false" | "no" | "off" => false,
+        _ => {
+            tracing::warn!("ignoring PIXI_CACHE_SHARED={value}, expected 1 or 0");
+            from_config
+        }
+    }
 }
 
-/// Makes everything pixi and its libraries create in the cache owned by the
-/// group in `PIXI_CACHE_SHARED_GROUP` or `[cache.shared-group]` of the global
-/// config, group-writable and setgid, so users with any umask can share it.
+/// With `[cache] shared = true` in the global config (or
+/// `PIXI_CACHE_SHARED=1`), makes everything pixi and its libraries create in
+/// the cache readable and writable by every user (directories `0777`, files
+/// `0666`), whatever the umask, so that all users of a host can share it.
 ///
 /// Shared are the cache root and every cache directory given explicitly
 /// (`[cache.<kind>]`, `PIXI_CACHE_<KIND>_DIR`); detached environments are
-/// not. Without a configured group this does nothing. If the group does not
-/// exist or the user is not a member, a warning is printed and the cache is
-/// used as without the setting.
-pub fn activate_shared_cache_group() {
-    activate_shared_cache_group_with(&GLOBAL_CACHE_CONFIG);
+/// not. Anyone who can log in to the host can then change the cached packages,
+/// so this is meant for node-local caches on clusters.
+pub fn activate_shared_cache() {
+    activate_shared_cache_with(&GLOBAL_CACHE_CONFIG);
 }
 
-fn activate_shared_cache_group_with(cache_cfg: &CacheConfig) {
-    let Some(name) = shared_cache_group_name(cache_cfg) else {
-        return;
-    };
-    let Some(gid) = shared_cache_group::resolve_group(&name) else {
-        tracing::warn!(
-            "cache shared group '{name}' (from [cache.shared-group] or PIXI_CACHE_SHARED_GROUP) \
-             does not exist; the cache is not shared"
-        );
-        return;
-    };
-    if !shared_cache_group::is_member(gid) {
-        tracing::warn!(
-            "you are not a member of the cache shared group '{name}' (from [cache.shared-group] \
-             or PIXI_CACHE_SHARED_GROUP); the cache is not shared"
-        );
+fn activate_shared_cache_with(cache_cfg: &CacheConfig) {
+    if !cache_is_shared(cache_cfg) {
         return;
     }
     let Some((root, _)) = resolve_cache_root(cache_cfg) else {
@@ -725,13 +719,11 @@ fn activate_shared_cache_group_with(cache_cfg: &CacheConfig) {
     }
     // Detached environments default to a directory in the cache root.
     excluded.push(roots[0].join(CacheKind::DetachedEnvironments.subdir()));
-    tracing::debug!(
-        "sharing cache directories {roots:?} (except {excluded:?}) with group '{name}' ({gid})"
-    );
-    shared_cache_group::activate(gid, roots.clone(), excluded);
+    tracing::debug!("sharing cache directories {roots:?} (except {excluded:?}) with all users");
+    shared_cache_perms::activate(shared_cache_perms::Mode::world(), roots.clone(), excluded);
     // Directories this user created before the setting are fixed up too.
     for dir in roots {
-        let _ = shared_cache_group::fix_path(&dir);
+        let _ = shared_cache_perms::fix_path(&dir);
     }
 }
 
@@ -2167,7 +2159,7 @@ impl Config {
             "cache.pypi-wheels",
             "cache.repodata",
             "cache.root",
-            "cache.shared-group",
+            "cache.shared",
             "concurrency",
             "concurrency.downloads",
             "concurrency.solves",
@@ -2758,7 +2750,10 @@ impl Config {
                     "detached-environments" => {
                         self.cache.detached_environments = value.map(PathBuf::from)
                     }
-                    "shared-group" => self.cache.shared_group = value,
+                    "shared" => {
+                        self.cache.shared =
+                            value.map(|v| v.parse()).transpose().into_diagnostic()?;
+                    }
                     "netfs-redirect" => {
                         self.cache.netfs_redirect = value
                             .map(|v| NetfsRedirect::from_str(&v))
@@ -4121,48 +4116,40 @@ UNUSED = "unused"
     }
 
     #[test]
-    fn cache_shared_group_from_toml_set_and_env() {
+    fn cache_shared_from_toml_set_and_env() {
         let _guard = NETFS_ENV_LOCK.lock().unwrap();
         let toml = r#"
             [cache]
-            shared-group = "slurm-users"
+            shared = true
         "#;
         let (config, _) = Config::from_toml(toml, None).unwrap();
-        assert_eq!(config.cache.shared_group.as_deref(), Some("slurm-users"));
+        assert_eq!(config.cache.shared, Some(true));
 
         // A later config layer without the key keeps it; one with it wins.
         let merged = config.cache.clone().merge(CacheConfig::default());
-        assert_eq!(merged.shared_group.as_deref(), Some("slurm-users"));
+        assert_eq!(merged.shared, Some(true));
         let other = CacheConfig {
-            shared_group: Some("other".into()),
+            shared: Some(false),
             ..Default::default()
         };
-        assert_eq!(
-            config.cache.clone().merge(other).shared_group.as_deref(),
-            Some("other")
-        );
+        assert_eq!(config.cache.clone().merge(other).shared, Some(false));
 
         let mut set = Config::default();
-        set.set("cache.shared-group", Some("pixi-users".into()))
-            .unwrap();
-        assert_eq!(set.cache.shared_group.as_deref(), Some("pixi-users"));
-        set.set("cache.shared-group", None).unwrap();
-        assert_eq!(set.cache.shared_group, None);
+        set.set("cache.shared", Some("true".into())).unwrap();
+        assert_eq!(set.cache.shared, Some(true));
+        assert!(set.set("cache.shared", Some("maybe".into())).is_err());
+        set.set("cache.shared", None).unwrap();
+        assert_eq!(set.cache.shared, None);
 
-        let _unset = ScopedEnv::unset("PIXI_CACHE_SHARED_GROUP");
-        assert_eq!(
-            shared_cache_group_name(&config.cache).as_deref(),
-            Some("slurm-users")
-        );
-        let _env = ScopedEnv::set("PIXI_CACHE_SHARED_GROUP", "from-env");
-        assert_eq!(
-            shared_cache_group_name(&config.cache).as_deref(),
-            Some("from-env")
-        );
-        assert_eq!(
-            shared_cache_group_name(&CacheConfig::default()).as_deref(),
-            Some("from-env")
-        );
+        let _unset = ScopedEnv::unset("PIXI_CACHE_SHARED");
+        assert!(cache_is_shared(&config.cache));
+        assert!(!cache_is_shared(&CacheConfig::default()));
+        let _env = ScopedEnv::set("PIXI_CACHE_SHARED", "1");
+        assert!(cache_is_shared(&CacheConfig::default()));
+        let _env = ScopedEnv::set("PIXI_CACHE_SHARED", "0");
+        assert!(!cache_is_shared(&config.cache));
+        let _env = ScopedEnv::set("PIXI_CACHE_SHARED", "bogus");
+        assert!(cache_is_shared(&config.cache));
     }
 
     #[test]

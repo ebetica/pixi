@@ -1182,9 +1182,9 @@ impl PythonRunner {
         let output = self
             .run_script_unshared(venv, script, source_tree, environment_variables, modified_path)
             .await;
-        // Build backends write into the source tree with the user's umask; in a cache shared
-        // with a group (an unpacked source distribution), give the group access to it.
-        let _ = shared_cache_group::fix_tree(source_tree);
+        // Build backends write into the source tree with the user's umask; in a shared cache
+        // (an unpacked source distribution), give the other users access to it.
+        let _ = shared_cache_perms::fix_tree(source_tree);
         output
     }
 

@@ -141,7 +141,7 @@ pub async fn fetch_index(
     }
 
     // Open and lock the cache file
-    // Created group-writable in a cache shared with a group.
+    // Created writable by every user in a shared cache.
     let cache_file = fs_err::tokio::OpenOptions::new()
         .write(true)
         .read(true)

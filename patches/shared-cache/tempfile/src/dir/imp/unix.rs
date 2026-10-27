@@ -17,8 +17,8 @@ pub fn create(
         }
     }
     dir_options.create(&path).with_err_path(|| &path)?;
-    // In a cache shared with a group, give the group access to the directory.
-    let _ = shared_cache_group::fix_path(&path);
+    // In a shared cache, give the other users access to the directory.
+    let _ = shared_cache_perms::fix_path(&path);
     Ok(TempDir {
         path: path.into_boxed_path(),
         disable_cleanup,

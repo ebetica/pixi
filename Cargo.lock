@@ -1507,7 +1507,7 @@ dependencies = [
  "serde_json",
  "sha1 0.10.6",
  "sha2 0.10.9",
- "shared_cache_group",
+ "shared_cache_perms",
  "ssri",
  "tempfile",
  "thiserror 1.0.69",
@@ -3039,7 +3039,7 @@ name = "fs-err"
 version = "3.3.0"
 dependencies = [
  "autocfg",
- "shared_cache_group",
+ "shared_cache_perms",
  "tokio",
 ]
 
@@ -6655,7 +6655,7 @@ dependencies = [
  "serde",
  "serde_ignored",
  "serde_json",
- "shared_cache_group",
+ "shared_cache_perms",
  "thiserror 2.0.18",
  "toml_edit 0.23.10+spec-1.0.0",
  "tracing",
@@ -6826,6 +6826,7 @@ dependencies = [
  "rattler_networking",
  "reqwest",
  "serde",
+ "shared_cache_perms",
  "tempfile",
  "thiserror 2.0.18",
  "tokio",
@@ -8299,7 +8300,7 @@ dependencies = [
  "rayon",
  "reqwest",
  "serde_json",
- "shared_cache_group",
+ "shared_cache_perms",
  "simple_spawn_blocking",
  "tempfile",
  "thiserror 2.0.18",
@@ -8677,7 +8678,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with",
- "shared_cache_group",
+ "shared_cache_perms",
  "simple_spawn_blocking",
  "strum",
  "superslice",
@@ -10101,7 +10102,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "shared_cache_group"
+name = "shared_cache_perms"
 version = "0.1.0"
 dependencies = [
  "libc",
@@ -10974,7 +10975,7 @@ dependencies = [
  "getrandom 0.3.4",
  "once_cell",
  "rustix 1.1.4",
- "shared_cache_group",
+ "shared_cache_perms",
  "windows-sys 0.52.0",
 ]
 
@@ -11847,7 +11848,7 @@ dependencies = [
  "rustc-hash",
  "serde",
  "serde_json",
- "shared_cache_group",
+ "shared_cache_perms",
  "tempfile",
  "thiserror 2.0.18",
  "tokio",
@@ -12261,7 +12262,6 @@ dependencies = [
 [[package]]
 name = "uv-git"
 version = "0.0.48"
-source = "git+https://github.com/astral-sh/uv?tag=0.11.15#3cffe97c2e48c9e49422c738da3af95919dd0bf5"
 dependencies = [
  "anyhow",
  "astral-reqwest-middleware",
@@ -12270,6 +12270,7 @@ dependencies = [
  "fs-err",
  "owo-colors",
  "reqwest",
+ "shared_cache_perms",
  "thiserror 2.0.18",
  "tokio",
  "tracing",

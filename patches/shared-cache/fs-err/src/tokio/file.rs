@@ -40,10 +40,10 @@ impl File {
     /// Wrapper for [`tokio::fs::File::create`].
     pub async fn create(path: impl Into<PathBuf>) -> io::Result<File> {
         let path = path.into();
-        if shared_cache_group::applies_to(&path) {
+        if shared_cache_perms::applies_to(&path) {
             let mut options = std::fs::OpenOptions::new();
             options.write(true).create(true).truncate(true);
-            return match shared_cache_group::open(&options, &path, true, false) {
+            return match shared_cache_perms::open(&options, &path, true, false) {
                 Ok(f) => Ok(File::from_parts(TokioFile::from_std(f), path)),
                 Err(err) => Err(Error::build(err, ErrorKind::CreateFile, &path)),
             };
@@ -59,10 +59,10 @@ impl File {
     /// Wrapper for [`tokio::fs::File::create_new`].
     pub async fn create_new(path: impl Into<PathBuf>) -> Result<Self, io::Error> {
         let path = path.into();
-        if shared_cache_group::applies_to(&path) {
+        if shared_cache_perms::applies_to(&path) {
             let mut options = std::fs::OpenOptions::new();
             options.read(true).write(true).create_new(true);
-            return match shared_cache_group::open(&options, &path, false, true) {
+            return match shared_cache_perms::open(&options, &path, false, true) {
                 Ok(f) => Ok(File::from_parts(TokioFile::from_std(f), path)),
                 Err(err) => Err(Error::build(err, ErrorKind::CreateFile, path)),
             };

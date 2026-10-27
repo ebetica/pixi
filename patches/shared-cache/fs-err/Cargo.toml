@@ -80,6 +80,6 @@ version = "=1.0.64"
 [build-dependencies.autocfg]
 version = "1"
 
-[dependencies.shared_cache_group]
+[dependencies.shared_cache_perms]
 version = "0.1.0"
-path = "../shared_cache_group"
+path = "../shared_cache_perms"

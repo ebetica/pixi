@@ -7,7 +7,7 @@ use crate::errors::{Error, ErrorKind};
 pub struct OpenOptions {
     options: fs::OpenOptions,
     // Mirrors of the creation flags, which `fs::OpenOptions` does not expose;
-    // `shared_cache_group::open` needs them.
+    // `shared_cache_perms::open` needs them.
     create: bool,
     create_new: bool,
 }
@@ -79,7 +79,7 @@ impl OpenOptions {
         P: Into<PathBuf>,
     {
         let path = path.into();
-        match shared_cache_group::open(&self.options, &path, self.create, self.create_new) {
+        match shared_cache_perms::open(&self.options, &path, self.create, self.create_new) {
             Ok(file) => Ok(crate::File::from_parts(file, path)),
             Err(source) => Err(Error::build(source, ErrorKind::OpenFile, path)),
         }

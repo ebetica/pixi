@@ -269,7 +269,7 @@ pub async fn execute() -> miette::Result<()> {
 
     // Setup logging for the application.
     setup_logging(&args, use_colors)?;
-    pixi_config::activate_shared_cache_group();
+    pixi_config::activate_shared_cache();
 
     let (Some(command), global_options) = (args.command, args.global_options) else {
         // match CI expectations
