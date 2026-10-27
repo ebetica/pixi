@@ -288,6 +288,7 @@ pub async fn execute() -> miette::Result<ExitCode> {
 
     setup_logging(&args, use_colors)?;
     auto_switch::install();
+    pixi_config::activate_shared_cache_group();
     pixi_global::report::set_verbosity(args.global_options.report_verbosity());
 
     let (Some(command), global_options) = (args.command, args.global_options) else {

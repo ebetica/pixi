@@ -150,3 +150,7 @@ tokio-runtime = [
 [target.'cfg(target_os = "linux")'.dependencies.libc]
 version = "0.2.144"
 optional = true
+
+[dependencies.shared_cache_group]
+version = "0.1.0"
+path = "../shared_cache_group"

@@ -18,13 +18,43 @@ What is here:
 - `cacache.diff`: the same change for `cacache`, which pixi uses for its
   conda-to-PyPI name mapping cache.
 - `rattler_shared_tempfile/`: the small helper crate that the diffs use.
+- `shared-group.diff`: the `[cache] shared-group` setting (below), for
+  `fs-err`, `tempfile`, `uv-build-frontend`, rattler's package cache and
+  repodata locks, and `cacache`. They call `shared_cache_group/`.
 - Every other directory is a crates.io crate at the version in `Cargo.lock`,
   with the diffs applied. `scripts/vendor_shared_cache.py` regenerates them
   and the marked block in `Cargo.toml`'s `[patch.crates-io]`.
 
-The setup the fix assumes: a cache directory owned by a shared group with the
-setgid bit (`chgrp pixi-users $DIR && chmod 2775 $DIR`), and users running with
-`umask 002`.
+## Sharing the cache with a group
+
+With only the fix above, the cache needs a directory owned by a shared group
+with the setgid bit (`chgrp pixi-users $DIR && chmod 2775 $DIR`) and every user
+running with `umask 002` (or a default ACL on the directory). Otherwise the
+first user's lock files and directories are not group-writable and everyone
+after them fails with `failed to acquire global cache lock` or
+`no writable layers to cache package to`.
+
+Setting a group in the global config (`~/.pixi/config.toml` or the system
+config) removes both requirements:
+
+```toml
+[cache]
+root = "/tmp/pixi-cache"
+shared-group = "slurm-users"   # or PIXI_CACHE_SHARED_GROUP=slurm-users
+```
+
+Then every directory pixi, rattler or uv creates in the cache, the root
+included, is owned by that group with mode `2775`, and every file (lock files
+included) is group read/write, whatever the umask. Nothing needs to create the
+root beforehand. Directories and lock files appear under a temporary name and
+are renamed into place without replacing anything, so two users creating the
+same one at the same time both succeed. Trees written by code that bypasses
+this (conda package extraction, build backends writing into an unpacked
+source distribution) are fixed up before they are used. The root and any
+`[cache.<kind>]`/`PIXI_CACHE_<KIND>_DIR` directories are shared; detached
+environments are not. If the group does not exist or you are not a member,
+pixi warns and uses the cache as without the setting. Entries other users
+created are never changed. See `shared_cache_group/src/lib.rs`.
 
 ## Installing
 

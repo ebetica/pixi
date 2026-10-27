@@ -419,3 +419,7 @@ default-features = false
 [dependencies.rattler_shared_tempfile]
 version = "0.1.0"
 path = "../rattler_shared_tempfile"
+
+[dependencies.shared_cache_group]
+version = "0.1.0"
+path = "../shared_cache_group"

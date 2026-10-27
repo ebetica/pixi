@@ -1453,6 +1453,7 @@ dependencies = [
  "serde_json",
  "sha1 0.10.6",
  "sha2 0.10.9",
+ "shared_cache_group",
  "ssri",
  "tempfile",
  "thiserror 1.0.69",
@@ -3030,10 +3031,9 @@ dependencies = [
 [[package]]
 name = "fs-err"
 version = "3.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5c95b673b8f6f7235229ae11c5642d81b04c2e64c1e2fb417bc0cf73ca45f29"
 dependencies = [
  "autocfg",
+ "shared_cache_group",
  "tokio",
 ]
 
@@ -6733,6 +6733,7 @@ dependencies = [
  "serde",
  "serde_ignored",
  "serde_json",
+ "shared_cache_group",
  "temp-env",
  "tempfile",
  "thiserror 2.0.21",
@@ -8467,6 +8468,7 @@ dependencies = [
  "reqwest",
  "rustix 1.1.4",
  "serde_json",
+ "shared_cache_group",
  "simple_spawn_blocking",
  "tempfile",
  "thiserror 2.0.21",
@@ -8883,6 +8885,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with",
+ "shared_cache_group",
  "simple_spawn_blocking",
  "strum",
  "superslice",
@@ -10341,6 +10344,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "shared_cache_group"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "shell-escape"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11098,13 +11108,12 @@ dependencies = [
 [[package]]
 name = "tempfile"
 version = "3.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.4.2",
+ "getrandom 0.3.4",
  "once_cell",
  "rustix 1.1.4",
+ "shared_cache_group",
  "windows-sys 0.52.0",
 ]
 
@@ -11950,8 +11959,6 @@ dependencies = [
 [[package]]
 name = "uv-build-frontend"
 version = "0.0.90"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26cad8553610921e1e8ac1d79171a7c1a6910de7933b3aed95ff137d2bc8e391"
 dependencies = [
  "anstream",
  "fs-err",
@@ -11962,6 +11969,7 @@ dependencies = [
  "rustc-hash",
  "serde",
  "serde_json",
+ "shared_cache_group",
  "tempfile",
  "thiserror 2.0.21",
  "tokio",

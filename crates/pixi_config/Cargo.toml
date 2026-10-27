@@ -28,6 +28,7 @@ reqwest = { workspace = true }
 serde = { workspace = true }
 serde_ignored = { workspace = true }
 serde_json = { workspace = true }
+shared_cache_group = { workspace = true }
 thiserror = { workspace = true }
 toml = { workspace = true }
 toml_edit = { workspace = true, features = ["serde"] }

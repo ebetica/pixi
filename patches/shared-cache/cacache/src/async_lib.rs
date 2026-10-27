@@ -49,24 +49,9 @@ pub use async_std::fs::remove_file;
 pub use tokio::fs::remove_file;
 
 #[cfg(feature = "async-std")]
-pub use async_std::fs::create_dir_all;
-#[cfg(feature = "tokio")]
-pub use tokio::fs::create_dir_all;
-
-#[cfg(feature = "async-std")]
 pub use async_std::fs::remove_dir_all;
 #[cfg(feature = "tokio")]
 pub use tokio::fs::remove_dir_all;
-
-#[cfg(feature = "async-std")]
-pub use async_std::fs::DirBuilder;
-#[cfg(feature = "tokio")]
-pub use tokio::fs::DirBuilder;
-
-#[cfg(feature = "async-std")]
-pub use async_std::fs::OpenOptions;
-#[cfg(feature = "tokio")]
-pub use tokio::fs::OpenOptions;
 
 #[cfg(feature = "async-std")]
 pub use async_std::io::BufReader;

@@ -1,5 +1,4 @@
 use ssri::{Algorithm, Integrity, IntegrityOpts};
-use std::fs::DirBuilder;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 #[cfg(any(feature = "async-std", feature = "tokio"))]
@@ -34,10 +33,8 @@ where
 
 fn create_symlink(sri: Integrity, cache: &PathBuf, target: &PathBuf) -> Result<Integrity> {
     let cpath = path::content_path(cache.as_ref(), &sri);
-    DirBuilder::new()
-        .recursive(true)
-        // Safe unwrap. cpath always has multiple segments
-        .create(cpath.parent().unwrap())
+    // Safe unwrap. cpath always has multiple segments
+    crate::content::write::shared_dir_all(cpath.parent().unwrap())
         .with_context(|| {
             format!(
                 "Failed to create destination directory for linked cache file, at {}",

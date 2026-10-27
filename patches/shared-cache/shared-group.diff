@@ -1,0 +1,877 @@
+diff -ruN a/cacache/src/async_lib.rs b/cacache/src/async_lib.rs
+--- a/cacache/src/async_lib.rs
++++ b/cacache/src/async_lib.rs
+@@ -49,26 +49,11 @@
+ pub use tokio::fs::remove_file;
+ 
+ #[cfg(feature = "async-std")]
+-pub use async_std::fs::create_dir_all;
+-#[cfg(feature = "tokio")]
+-pub use tokio::fs::create_dir_all;
+-
+-#[cfg(feature = "async-std")]
+ pub use async_std::fs::remove_dir_all;
+ #[cfg(feature = "tokio")]
+ pub use tokio::fs::remove_dir_all;
+ 
+ #[cfg(feature = "async-std")]
+-pub use async_std::fs::DirBuilder;
+-#[cfg(feature = "tokio")]
+-pub use tokio::fs::DirBuilder;
+-
+-#[cfg(feature = "async-std")]
+-pub use async_std::fs::OpenOptions;
+-#[cfg(feature = "tokio")]
+-pub use tokio::fs::OpenOptions;
+-
+-#[cfg(feature = "async-std")]
+ pub use async_std::io::BufReader;
+ #[cfg(feature = "tokio")]
+ pub use tokio::io::BufReader;
+diff -ruN a/cacache/src/content/linkto.rs b/cacache/src/content/linkto.rs
+--- a/cacache/src/content/linkto.rs
++++ b/cacache/src/content/linkto.rs
+@@ -1,5 +1,4 @@
+ use ssri::{Algorithm, Integrity, IntegrityOpts};
+-use std::fs::DirBuilder;
+ use std::fs::File;
+ use std::path::{Path, PathBuf};
+ #[cfg(any(feature = "async-std", feature = "tokio"))]
+@@ -34,10 +33,8 @@
+ 
+ fn create_symlink(sri: Integrity, cache: &PathBuf, target: &PathBuf) -> Result<Integrity> {
+     let cpath = path::content_path(cache.as_ref(), &sri);
+-    DirBuilder::new()
+-        .recursive(true)
+-        // Safe unwrap. cpath always has multiple segments
+-        .create(cpath.parent().unwrap())
++    // Safe unwrap. cpath always has multiple segments
++    crate::content::write::shared_dir_all(cpath.parent().unwrap())
+         .with_context(|| {
+             format!(
+                 "Failed to create destination directory for linked cache file, at {}",
+diff -ruN a/cacache/src/content/write.rs b/cacache/src/content/write.rs
+--- a/cacache/src/content/write.rs
++++ b/cacache/src/content/write.rs
+@@ -1,4 +1,3 @@
+-use std::fs::DirBuilder;
+ use std::io::prelude::*;
+ use std::path::{Path, PathBuf};
+ #[cfg(any(feature = "async-std", feature = "tokio"))]
+@@ -15,6 +14,12 @@
+ use ssri::{Algorithm, Integrity, IntegrityOpts};
+ use tempfile::NamedTempFile;
+ 
++/// `create_dir_all` that, in a cache shared with a group, creates the
++/// directories group-owned and group-writable.
++pub(crate) fn shared_dir_all(dir: &Path) -> std::io::Result<()> {
++    shared_cache_group::create_dir_all(dir, 0o777)
++}
++
+ /// Like `NamedTempFile::new_in`, but starts at mode 0666 so the umask (not a
+ /// hardcoded 0600) decides who can read cache content shared between users.
+ pub(crate) fn shared_named_tempfile(dir: &std::path::Path) -> std::io::Result<NamedTempFile> {
+@@ -61,10 +66,7 @@
+         let cache_path = cache.to_path_buf();
+         let mut tmp_path = cache_path.clone();
+         tmp_path.push("tmp");
+-        DirBuilder::new()
+-            .recursive(true)
+-            .create(&tmp_path)
+-            .with_context(|| {
++        shared_dir_all(&tmp_path).with_context(|| {
+                 format!(
+                     "Failed to create cache directory for temporary files, at {}",
+                     tmp_path.display()
+@@ -89,11 +91,8 @@
+     pub fn close(self) -> Result<Integrity> {
+         let sri = self.builder.result();
+         let cpath = path::content_path(&self.cache, &sri);
+-        DirBuilder::new()
+-            .recursive(true)
+-            // Safe unwrap. cpath always has multiple segments
+-            .create(cpath.parent().unwrap())
+-            .with_context(|| {
++        // Safe unwrap. cpath always has multiple segments
++        shared_dir_all(cpath.parent().unwrap()).with_context(|| {
+                 format!(
+                     "Failed to create destination directory for cache contents, at {}",
+                     path::content_path(&self.cache, &sri)
+@@ -172,11 +171,7 @@
+         let cache_path = cache.to_path_buf();
+         let mut tmp_path = cache_path.clone();
+         tmp_path.push("tmp");
+-        crate::async_lib::DirBuilder::new()
+-            .recursive(true)
+-            .create(&tmp_path)
+-            .await
+-            .with_context(|| {
++        shared_dir_all(&tmp_path).with_context(|| {
+                 format!(
+                     "Failed to create cache directory for temporary files, at {}",
+                     tmp_path.display()
+@@ -222,10 +217,8 @@
+ 
+                             // Start the operation asynchronously.
+                             *state = State::Busy(crate::async_lib::spawn_blocking(|| {
+-                                let res = std::fs::DirBuilder::new()
+-                                    .recursive(true)
+-                                    // Safe unwrap. cpath always has multiple segments
+-                                    .create(cpath.parent().unwrap())
++                                // Safe unwrap. cpath always has multiple segments
++                                let res = shared_dir_all(cpath.parent().unwrap())
+                                     .with_context(|| {
+                                         format!(
+                                             "building directory {} failed",
+diff -ruN a/cacache/src/index.rs b/cacache/src/index.rs
+--- a/cacache/src/index.rs
++++ b/cacache/src/index.rs
+@@ -70,7 +70,7 @@
+ /// Raw insertion into the cache index.
+ pub fn insert(cache: &Path, key: &str, opts: WriteOpts) -> Result<Integrity> {
+     let bucket = bucket_path(cache, key);
+-    fs::create_dir_all(bucket.parent().unwrap()).with_context(|| {
++    crate::content::write::shared_dir_all(bucket.parent().unwrap()).with_context(|| {
+         format!(
+             "Failed to create index bucket directory: {:?}",
+             bucket.parent().unwrap()
+@@ -86,11 +86,13 @@
+     })
+     .with_context(|| format!("Failed to serialize entry with key `{key}`"))?;
+ 
+-    let mut buck = OpenOptions::new()
+-        .create(true)
+-        .append(true)
+-        .open(&bucket)
+-        .with_context(|| format!("Failed to create or open index bucket at {bucket:?}"))?;
++    let mut buck = shared_cache_group::open(
++        OpenOptions::new().create(true).append(true),
++        &bucket,
++        true,
++        false,
++    )
++    .with_context(|| format!("Failed to create or open index bucket at {bucket:?}"))?;
+ 
+     let out = format!("\n{}\t{}", hash_entry(&stringified), stringified);
+     buck.write_all(out.as_bytes())
+@@ -107,8 +109,7 @@
+ /// Asynchronous raw insertion into the cache index.
+ pub async fn insert_async<'a>(cache: &'a Path, key: &'a str, opts: WriteOpts) -> Result<Integrity> {
+     let bucket = bucket_path(cache, key);
+-    crate::async_lib::create_dir_all(bucket.parent().unwrap())
+-        .await
++    crate::content::write::shared_dir_all(bucket.parent().unwrap())
+         .with_context(|| {
+             format!(
+                 "Failed to create index bucket directory: {:?}",
+@@ -125,12 +126,14 @@
+     })
+     .with_context(|| format!("Failed to serialize entry with key `{key}`"))?;
+ 
+-    let mut buck = crate::async_lib::OpenOptions::new()
+-        .create(true)
+-        .append(true)
+-        .open(&bucket)
+-        .await
+-        .with_context(|| format!("Failed to create or open index bucket at {bucket:?}"))?;
++    let mut buck = shared_cache_group::open(
++        OpenOptions::new().create(true).append(true),
++        &bucket,
++        true,
++        false,
++    )
++    .map(crate::async_lib::File::from)
++    .with_context(|| format!("Failed to create or open index bucket at {bucket:?}"))?;
+ 
+     let out = format!("\n{}\t{}", hash_entry(&stringified), stringified);
+     buck.write_all(out.as_bytes())
+diff -ruN a/fs-err/src/file.rs b/fs-err/src/file.rs
+--- a/fs-err/src/file.rs
++++ b/fs-err/src/file.rs
+@@ -30,7 +30,10 @@
+ 
+ /// like [`open()`] but for [`crate::write`].
+ pub(crate) fn create(path: &Path) -> Result<std::fs::File, impl FnOnce(PathBuf) -> io::Error> {
+-    fs::File::create(path).map_err(|err| |path| Error::build(err, ErrorKind::CreateFile, path))
++    let mut options = fs::OpenOptions::new();
++    options.write(true).create(true).truncate(true);
++    shared_cache_group::open(&options, path, true, false)
++        .map_err(|err| |path| Error::build(err, ErrorKind::CreateFile, path))
+ }
+ 
+ /// Wrappers for methods from [`std::fs::File`].
+@@ -72,12 +75,9 @@
+     {
+         let path = path.into();
+         // TODO: Use fs::File::create_new once MSRV is at least 1.77
+-        match fs::OpenOptions::new()
+-            .read(true)
+-            .write(true)
+-            .create_new(true)
+-            .open(&path)
+-        {
++        let mut options = fs::OpenOptions::new();
++        options.read(true).write(true).create_new(true);
++        match shared_cache_group::open(&options, &path, false, true) {
+             Ok(file) => Ok(File::from_parts(file, path)),
+             Err(err) => Err(Error::build(err, ErrorKind::CreateFile, path)),
+         }
+diff -ruN a/fs-err/src/lib.rs b/fs-err/src/lib.rs
+--- a/fs-err/src/lib.rs
++++ b/fs-err/src/lib.rs
+@@ -176,8 +176,10 @@
+ {
+     let from = from.as_ref();
+     let to = to.as_ref();
+-    fs::copy(from, to)
+-        .map_err(|source| SourceDestError::build(source, SourceDestErrorKind::Copy, from, to))
++    let copied = fs::copy(from, to)
++        .map_err(|source| SourceDestError::build(source, SourceDestErrorKind::Copy, from, to))?;
++    let _ = shared_cache_group::fix_path(to);
++    Ok(copied)
+ }
+ 
+ /// Creates a new, empty directory at the provided path.
+@@ -188,7 +190,8 @@
+     P: AsRef<Path>,
+ {
+     let path = path.as_ref();
+-    fs::create_dir(path).map_err(|source| Error::build(source, ErrorKind::CreateDir, path))
++    shared_cache_group::create_dir(path, 0o777)
++        .map_err(|source| Error::build(source, ErrorKind::CreateDir, path))
+ }
+ 
+ /// Recursively create a directory and all of its parent components if they are missing.
+@@ -199,7 +202,8 @@
+     P: AsRef<Path>,
+ {
+     let path = path.as_ref();
+-    fs::create_dir_all(path).map_err(|source| Error::build(source, ErrorKind::CreateDir, path))
++    shared_cache_group::create_dir_all(path, 0o777)
++        .map_err(|source| Error::build(source, ErrorKind::CreateDir, path))
+ }
+ 
+ /// Removes an empty directory.
+@@ -291,7 +295,10 @@
+     let from = from.as_ref();
+     let to = to.as_ref();
+     fs::rename(from, to)
+-        .map_err(|source| SourceDestError::build(source, SourceDestErrorKind::Rename, from, to))
++        .map_err(|source| SourceDestError::build(source, SourceDestErrorKind::Rename, from, to))?;
++    // Whatever was moved into a shared cache may have been written elsewhere.
++    let _ = shared_cache_group::fix_tree(to);
++    Ok(())
+ }
+ 
+ /// Creates a new symbolic link on the filesystem.
+@@ -325,7 +332,9 @@
+ pub fn set_permissions<P: AsRef<Path>>(path: P, perm: fs::Permissions) -> io::Result<()> {
+     let path = path.as_ref();
+     fs::set_permissions(path, perm)
+-        .map_err(|source| Error::build(source, ErrorKind::SetPermissions, path))
++        .map_err(|source| Error::build(source, ErrorKind::SetPermissions, path))?;
++    let _ = shared_cache_group::fix_path(path);
++    Ok(())
+ }
+ 
+ fn initial_buffer_size(file: &std::fs::File) -> usize {
+diff -ruN a/fs-err/src/open_options.rs b/fs-err/src/open_options.rs
+--- a/fs-err/src/open_options.rs
++++ b/fs-err/src/open_options.rs
+@@ -4,7 +4,13 @@
+ 
+ #[derive(Clone, Debug)]
+ /// Wrapper for [`std::fs::OpenOptions`].
+-pub struct OpenOptions(fs::OpenOptions);
++pub struct OpenOptions {
++    options: fs::OpenOptions,
++    // Mirrors of the creation flags, which `fs::OpenOptions` does not expose;
++    // `shared_cache_group::open` needs them.
++    create: bool,
++    create_new: bool,
++}
+ 
+ impl OpenOptions {
+     /// Creates a blank new set of options ready for configuration.
+@@ -12,14 +18,14 @@
+     /// Wrapper for [`std::fs::OpenOptions::new`].
+     #[allow(clippy::new_without_default)]
+     pub fn new() -> Self {
+-        OpenOptions(fs::OpenOptions::new())
++        Self::from_options(fs::OpenOptions::new())
+     }
+ 
+     /// Sets the option for read access.
+     ///
+     /// Wrapper for [`std::fs::OpenOptions::read`].
+     pub fn read(&mut self, read: bool) -> &mut Self {
+-        self.0.read(read);
++        self.options.read(read);
+         self
+     }
+ 
+@@ -27,7 +33,7 @@
+     ///
+     /// Wrapper for [`std::fs::OpenOptions::write`].
+     pub fn write(&mut self, write: bool) -> &mut Self {
+-        self.0.write(write);
++        self.options.write(write);
+         self
+     }
+ 
+@@ -35,7 +41,7 @@
+     ///
+     /// Wrapper for [`std::fs::OpenOptions::append`].
+     pub fn append(&mut self, append: bool) -> &mut Self {
+-        self.0.append(append);
++        self.options.append(append);
+         self
+     }
+ 
+@@ -43,7 +49,7 @@
+     ///
+     /// Wrapper for [`std::fs::OpenOptions::truncate`].
+     pub fn truncate(&mut self, truncate: bool) -> &mut Self {
+-        self.0.truncate(truncate);
++        self.options.truncate(truncate);
+         self
+     }
+ 
+@@ -51,7 +57,8 @@
+     ///
+     /// Wrapper for [`std::fs::OpenOptions::create`].
+     pub fn create(&mut self, create: bool) -> &mut Self {
+-        self.0.create(create);
++        self.options.create(create);
++        self.create = create;
+         self
+     }
+ 
+@@ -59,7 +66,8 @@
+     ///
+     /// Wrapper for [`std::fs::OpenOptions::create_new`].
+     pub fn create_new(&mut self, create_new: bool) -> &mut Self {
+-        self.0.create_new(create_new);
++        self.options.create_new(create_new);
++        self.create_new = create_new;
+         self
+     }
+ 
+@@ -71,7 +79,7 @@
+         P: Into<PathBuf>,
+     {
+         let path = path.into();
+-        match self.0.open(&path) {
++        match shared_cache_group::open(&self.options, &path, self.create, self.create_new) {
+             Ok(file) => Ok(crate::File::from_parts(file, path)),
+             Err(source) => Err(Error::build(source, ErrorKind::OpenFile, path)),
+         }
+@@ -82,14 +90,18 @@
+ impl OpenOptions {
+     /// Constructs `Self` from [`std::fs::OpenOptions`].
+     pub fn from_options(options: fs::OpenOptions) -> Self {
+-        Self(options)
++        Self {
++            options,
++            create: false,
++            create_new: false,
++        }
+     }
+ 
+     /// Returns a reference to the underlying [`std::fs::OpenOptions`].
+     ///
+     /// Note that calling `open()` on this reference will NOT give you the improved errors from fs-err.
+     pub fn options(&self) -> &fs::OpenOptions {
+-        &self.0
++        &self.options
+     }
+ 
+     /// Returns a mutable reference to the underlying [`std::fs::OpenOptions`].
+@@ -97,7 +109,7 @@
+     /// This allows you to change settings that don't yet have wrappers in fs-err.
+     /// Note that calling `open()` on this reference will NOT give you the improved errors from fs-err.
+     pub fn options_mut(&mut self) -> &mut fs::OpenOptions {
+-        &mut self.0
++        &mut self.options
+     }
+ }
+ 
+diff -ruN a/fs-err/src/tokio/dir_builder.rs b/fs-err/src/tokio/dir_builder.rs
+--- a/fs-err/src/tokio/dir_builder.rs
++++ b/fs-err/src/tokio/dir_builder.rs
+@@ -9,6 +9,9 @@
+ #[cfg_attr(docsrs, doc(cfg(feature = "tokio")))]
+ pub struct DirBuilder {
+     inner: tokio::fs::DirBuilder,
++    // Mirrors for `shared_cache_group`, which `tokio::fs::DirBuilder` does not expose.
++    recursive: bool,
++    mode: Option<u32>,
+ }
+ 
+ impl DirBuilder {
+@@ -35,6 +38,7 @@
+     /// Wrapper around [`tokio::fs::DirBuilder::recursive`].
+     pub fn recursive(&mut self, recursive: bool) -> &mut Self {
+         self.inner.recursive(recursive);
++        self.recursive = recursive;
+         self
+     }
+ 
+@@ -43,6 +47,15 @@
+     /// Wrapper around [`tokio::fs::DirBuilder::create`].
+     pub async fn create(&self, path: impl AsRef<Path>) -> io::Result<()> {
+         let path = path.as_ref();
++        if shared_cache_group::is_active() {
++            let mode = self.mode.unwrap_or(0o777);
++            let result = if self.recursive {
++                shared_cache_group::create_dir_all(path, mode)
++            } else {
++                shared_cache_group::create_dir(path, mode)
++            };
++            return result.map_err(|err| Error::build(err, ErrorKind::CreateDir, path));
++        }
+         self.inner
+             .create(path)
+             .await
+@@ -57,6 +70,7 @@
+     /// Wrapper around [`tokio::fs::DirBuilder::mode`].
+     pub fn mode(&mut self, mode: u32) -> &mut Self {
+         self.inner.mode(mode);
++        self.mode = Some(mode);
+         self
+     }
+ }
+diff -ruN a/fs-err/src/tokio/file.rs b/fs-err/src/tokio/file.rs
+--- a/fs-err/src/tokio/file.rs
++++ b/fs-err/src/tokio/file.rs
+@@ -40,6 +40,14 @@
+     /// Wrapper for [`tokio::fs::File::create`].
+     pub async fn create(path: impl Into<PathBuf>) -> io::Result<File> {
+         let path = path.into();
++        if shared_cache_group::applies_to(&path) {
++            let mut options = std::fs::OpenOptions::new();
++            options.write(true).create(true).truncate(true);
++            return match shared_cache_group::open(&options, &path, true, false) {
++                Ok(f) => Ok(File::from_parts(TokioFile::from_std(f), path)),
++                Err(err) => Err(Error::build(err, ErrorKind::CreateFile, &path)),
++            };
++        }
+         match TokioFile::create(&path).await {
+             Ok(f) => Ok(File::from_parts(f, path)),
+             Err(err) => Err(Error::build(err, ErrorKind::CreateFile, &path)),
+@@ -51,6 +59,14 @@
+     /// Wrapper for [`tokio::fs::File::create_new`].
+     pub async fn create_new(path: impl Into<PathBuf>) -> Result<Self, io::Error> {
+         let path = path.into();
++        if shared_cache_group::applies_to(&path) {
++            let mut options = std::fs::OpenOptions::new();
++            options.read(true).write(true).create_new(true);
++            return match shared_cache_group::open(&options, &path, false, true) {
++                Ok(f) => Ok(File::from_parts(TokioFile::from_std(f), path)),
++                Err(err) => Err(Error::build(err, ErrorKind::CreateFile, path)),
++            };
++        }
+         match fs::File::create_new(&path).await {
+             Ok(file) => Ok(File::from_parts(file, path)),
+             Err(err) => Err(Error::build(err, ErrorKind::CreateFile, path)),
+diff -ruN a/fs-err/src/tokio/mod.rs b/fs-err/src/tokio/mod.rs
+--- a/fs-err/src/tokio/mod.rs
++++ b/fs-err/src/tokio/mod.rs
+@@ -34,9 +34,11 @@
+ #[cfg_attr(docsrs, doc(cfg(feature = "tokio")))]
+ pub async fn copy(from: impl AsRef<Path>, to: impl AsRef<Path>) -> Result<u64, io::Error> {
+     let (from, to) = (from.as_ref(), to.as_ref());
+-    tokio::fs::copy(from, to)
++    let copied = tokio::fs::copy(from, to)
+         .await
+-        .map_err(|err| SourceDestError::build(err, SourceDestErrorKind::Copy, from, to))
++        .map_err(|err| SourceDestError::build(err, SourceDestErrorKind::Copy, from, to))?;
++    let _ = shared_cache_group::fix_path(to);
++    Ok(copied)
+ }
+ 
+ /// Creates a new, empty directory at the provided path.
+@@ -45,6 +47,10 @@
+ #[cfg_attr(docsrs, doc(cfg(feature = "tokio")))]
+ pub async fn create_dir(path: impl AsRef<Path>) -> io::Result<()> {
+     let path = path.as_ref();
++    if shared_cache_group::applies_to(path) {
++        return shared_cache_group::create_dir(path, 0o777)
++            .map_err(|err| Error::build(err, ErrorKind::CreateDir, path));
++    }
+     tokio::fs::create_dir(path)
+         .await
+         .map_err(|err| Error::build(err, ErrorKind::CreateDir, path))
+@@ -57,6 +63,10 @@
+ #[cfg_attr(docsrs, doc(cfg(feature = "tokio")))]
+ pub async fn create_dir_all(path: impl AsRef<Path>) -> io::Result<()> {
+     let path = path.as_ref();
++    if shared_cache_group::is_active() {
++        return shared_cache_group::create_dir_all(path, 0o777)
++            .map_err(|err| Error::build(err, ErrorKind::CreateDir, path));
++    }
+     tokio::fs::create_dir_all(path)
+         .await
+         .map_err(|err| Error::build(err, ErrorKind::CreateDir, path))
+@@ -176,7 +186,10 @@
+     let (from, to) = (from.as_ref(), to.as_ref());
+     tokio::fs::rename(from, to)
+         .await
+-        .map_err(|err| SourceDestError::build(err, SourceDestErrorKind::Rename, from, to))
++        .map_err(|err| SourceDestError::build(err, SourceDestErrorKind::Rename, from, to))?;
++    // Whatever was moved into a shared cache may have been written elsewhere.
++    let _ = shared_cache_group::fix_tree(to);
++    Ok(())
+ }
+ 
+ /// Changes the permissions found on a file or a directory.
+@@ -187,7 +200,9 @@
+     let path = path.as_ref();
+     tokio::fs::set_permissions(path, perm)
+         .await
+-        .map_err(|err| Error::build(err, ErrorKind::SetPermissions, path))
++        .map_err(|err| Error::build(err, ErrorKind::SetPermissions, path))?;
++    let _ = shared_cache_group::fix_path(path);
++    Ok(())
+ }
+ 
+ /// Queries the file system metadata for a path.
+@@ -254,5 +269,7 @@
+     let (path, contents) = (path.as_ref(), contents.as_ref());
+     tokio::fs::write(path, contents)
+         .await
+-        .map_err(|err| Error::build(err, ErrorKind::Write, path))
++        .map_err(|err| Error::build(err, ErrorKind::Write, path))?;
++    let _ = shared_cache_group::fix_path(path);
++    Ok(())
+ }
+diff -ruN a/fs-err/src/tokio/open_options.rs b/fs-err/src/tokio/open_options.rs
+--- a/fs-err/src/tokio/open_options.rs
++++ b/fs-err/src/tokio/open_options.rs
+@@ -7,10 +7,16 @@
+ /// Options and flags which can be used to configure how a file is opened.
+ ///
+ /// This is a wrapper around [`tokio::fs::OpenOptions`].
+-#[derive(Clone, Debug, Default)]
++#[derive(Clone, Debug)]
+ #[cfg_attr(docsrs, doc(cfg(feature = "tokio")))]
+ pub struct OpenOptions {
+     tokio: TokioOpenOptions,
++    // A copy of the options as `std::fs::OpenOptions` plus the creation flags,
++    // for `shared_cache_group::open` (`tokio`'s options cannot be read back).
++    // `None` when constructed from `tokio::fs::OpenOptions`.
++    std: Option<std::fs::OpenOptions>,
++    create: bool,
++    create_new: bool,
+ }
+ 
+ impl OpenOptions {
+@@ -31,6 +37,9 @@
+     pub fn new() -> OpenOptions {
+         OpenOptions {
+             tokio: TokioOpenOptions::new(),
++            std: Some(std::fs::OpenOptions::new()),
++            create: false,
++            create_new: false,
+         }
+     }
+ 
+@@ -39,6 +48,9 @@
+     /// Wrapper for [`tokio::fs::OpenOptions::read`].
+     pub fn read(&mut self, read: bool) -> &mut OpenOptions {
+         self.tokio.read(read);
++        if let Some(std) = &mut self.std {
++            std.read(read);
++        }
+         self
+     }
+ 
+@@ -47,6 +59,9 @@
+     /// Wrapper for [`tokio::fs::OpenOptions::write`].
+     pub fn write(&mut self, write: bool) -> &mut OpenOptions {
+         self.tokio.write(write);
++        if let Some(std) = &mut self.std {
++            std.write(write);
++        }
+         self
+     }
+ 
+@@ -55,6 +70,9 @@
+     /// Wrapper for [`tokio::fs::OpenOptions::append`].
+     pub fn append(&mut self, append: bool) -> &mut OpenOptions {
+         self.tokio.append(append);
++        if let Some(std) = &mut self.std {
++            std.append(append);
++        }
+         self
+     }
+ 
+@@ -63,6 +81,9 @@
+     /// Wrapper for [`tokio::fs::OpenOptions::truncate`].
+     pub fn truncate(&mut self, truncate: bool) -> &mut OpenOptions {
+         self.tokio.truncate(truncate);
++        if let Some(std) = &mut self.std {
++            std.truncate(truncate);
++        }
+         self
+     }
+ 
+@@ -71,6 +92,10 @@
+     /// Wrapper for [`tokio::fs::OpenOptions::create`].
+     pub fn create(&mut self, create: bool) -> &mut OpenOptions {
+         self.tokio.create(create);
++        if let Some(std) = &mut self.std {
++            std.create(create);
++        }
++        self.create = create;
+         self
+     }
+ 
+@@ -79,6 +104,10 @@
+     /// Wrapper for [`tokio::fs::OpenOptions::create_new`].
+     pub fn create_new(&mut self, create_new: bool) -> &mut OpenOptions {
+         self.tokio.create_new(create_new);
++        if let Some(std) = &mut self.std {
++            std.create_new(create_new);
++        }
++        self.create_new = create_new;
+         self
+     }
+ 
+@@ -87,6 +116,11 @@
+     /// Wrapper for [`tokio::fs::OpenOptions::open`].
+     pub async fn open(&self, path: impl AsRef<Path>) -> io::Result<File> {
+         let path = path.as_ref();
++        if let Some(std) = self.std.as_ref().filter(|_| shared_cache_group::applies_to(path)) {
++            return shared_cache_group::open(std, path, self.create, self.create_new)
++                .map(|f| File::from_parts(tokio::fs::File::from_std(f), path))
++                .map_err(|err| Error::build(err, ErrorKind::OpenFile, path));
++        }
+         self.tokio
+             .open(path)
+             .await
+@@ -102,6 +136,9 @@
+     /// Wrapper for [`tokio::fs::OpenOptions::mode`].
+     pub fn mode(&mut self, mode: u32) -> &mut OpenOptions {
+         self.tokio.mode(mode);
++        if let Some(std) = &mut self.std {
++            std::os::unix::fs::OpenOptionsExt::mode(std, mode);
++        }
+         self
+     }
+ 
+@@ -110,18 +147,37 @@
+     /// Wrapper for [`tokio::fs::OpenOptions::custom_flags`].
+     pub fn custom_flags(&mut self, flags: i32) -> &mut OpenOptions {
+         self.tokio.custom_flags(flags);
++        if let Some(std) = &mut self.std {
++            std::os::unix::fs::OpenOptionsExt::custom_flags(std, flags);
++        }
+         self
+     }
+ }
+ 
++impl Default for OpenOptions {
++    fn default() -> Self {
++        Self::new()
++    }
++}
++
+ impl From<std::fs::OpenOptions> for OpenOptions {
+     fn from(std: std::fs::OpenOptions) -> Self {
+-        OpenOptions { tokio: std.into() }
++        OpenOptions {
++            tokio: std.clone().into(),
++            std: Some(std),
++            create: false,
++            create_new: false,
++        }
+     }
+ }
+ 
+ impl From<TokioOpenOptions> for OpenOptions {
+     fn from(tokio: TokioOpenOptions) -> Self {
+-        OpenOptions { tokio }
++        OpenOptions {
++            tokio,
++            std: None,
++            create: false,
++            create_new: false,
++        }
+     }
+ }
+diff -ruN a/rattler_cache/src/package_cache/cache_lock.rs b/rattler_cache/src/package_cache/cache_lock.rs
+--- a/rattler_cache/src/package_cache/cache_lock.rs
++++ b/rattler_cache/src/package_cache/cache_lock.rs
+@@ -127,12 +127,10 @@
+     pub async fn acquire(path: &Path) -> Result<Self, PackageCacheLayerError> {
+         let lock_file_path = path.to_path_buf();
+         let acquire_lock_fut = simple_spawn_blocking::tokio::run_blocking_task(move || {
+-            let file = std::fs::OpenOptions::new()
+-                .create(true)
+-                .truncate(false)
+-                .write(true)
+-                .read(true)
+-                .open(&lock_file_path)
++            let mut options = std::fs::OpenOptions::new();
++            options.create(true).truncate(false).write(true).read(true);
++            // Created group-writable in a cache shared with a group.
++            let file = shared_cache_group::open(&options, &lock_file_path, true, false)
+                 .map_err(|e| {
+                     PackageCacheLayerError::LockError(
+                         format!(
+@@ -184,12 +182,10 @@
+         let lock_file_path = path.to_path_buf();
+ 
+         simple_spawn_blocking::tokio::run_blocking_task(move || {
+-            let file = std::fs::OpenOptions::new()
+-                .create(true)
+-                .read(true)
+-                .write(true)
+-                .truncate(false)
+-                .open(&lock_file_path)
++            let mut options = std::fs::OpenOptions::new();
++            options.create(true).read(true).write(true).truncate(false);
++            // Created group-writable in a cache shared with a group.
++            let file = shared_cache_group::open(&options, &lock_file_path, true, false)
+                 .map_err(|e| {
+                     PackageCacheLayerError::LockError(
+                         format!(
+diff -ruN a/rattler_cache/src/package_cache/mod.rs b/rattler_cache/src/package_cache/mod.rs
+--- a/rattler_cache/src/package_cache/mod.rs
++++ b/rattler_cache/src/package_cache/mod.rs
+@@ -1183,6 +1183,14 @@
+                 // Take ownership of the temp directory path so it won't be auto-deleted
+                 let temp_path = temp_dir.keep();
+ 
++                // The extraction does not go through `fs_err`, so give the group
++                // access to what it wrote if the cache is shared with a group.
++                if shared_cache_group::applies_to(&temp_path) {
++                    let tree = temp_path.clone();
++                    let _ = tokio::task::spawn_blocking(move || shared_cache_group::fix_tree(&tree))
++                        .await;
++                }
++
+                 // Remove any existing (potentially corrupted) directory at the final path
+                 if path.is_dir() {
+                     tokio_fs::remove_dir_all(&path).await.map_err(|e| {
+diff -ruN a/rattler_repodata_gateway/src/gateway/sharded_subdir/tokio/index.rs b/rattler_repodata_gateway/src/gateway/sharded_subdir/tokio/index.rs
+--- a/rattler_repodata_gateway/src/gateway/sharded_subdir/tokio/index.rs
++++ b/rattler_repodata_gateway/src/gateway/sharded_subdir/tokio/index.rs
+@@ -141,13 +141,15 @@
+     }
+ 
+     // Open and lock the cache file
+-    let cache_file = tokio::fs::OpenOptions::new()
++    // Created group-writable in a cache shared with a group.
++    let cache_file = fs_err::tokio::OpenOptions::new()
+         .write(true)
+         .read(true)
+         .truncate(false)
+         .create(true)
+         .open(&cache_path)
+         .await
++        .map(|file| file.into_parts().0)
+         .map_err(|err| {
+             GatewayError::IoError(format!("failed to open '{}'", cache_path.display()), err)
+         })?;
+diff -ruN a/rattler_repodata_gateway/src/utils/flock.rs b/rattler_repodata_gateway/src/utils/flock.rs
+--- a/rattler_repodata_gateway/src/utils/flock.rs
++++ b/rattler_repodata_gateway/src/utils/flock.rs
+@@ -124,12 +124,14 @@
+         // If we want an exclusive lock then if we fail because of NotFound it's
+         // likely because an intermediate directory didn't exist, so try to
+         // create the directory and then continue.
+-        let f = opts
+-            .open(path)
++        // Only exclusive locks create the file; in a cache shared with a group
++        // it is created group-writable.
++        let create = state == State::Exclusive;
++        let f = shared_cache_group::open(opts, path, create, false)
+             .or_else(|e| {
+                 if e.kind() == io::ErrorKind::NotFound && state == State::Exclusive {
+-                    std::fs::create_dir_all(path.parent().unwrap())?;
+-                    Ok(opts.open(path)?)
++                    shared_cache_group::create_dir_all(path.parent().unwrap(), 0o777)?;
++                    Ok(shared_cache_group::open(opts, path, create, false)?)
+                 } else {
+                     Err(anyhow::Error::from(e))
+                 }
+diff -ruN a/tempfile/src/dir/imp/unix.rs b/tempfile/src/dir/imp/unix.rs
+--- a/tempfile/src/dir/imp/unix.rs
++++ b/tempfile/src/dir/imp/unix.rs
+@@ -16,11 +16,11 @@
+             dir_options.mode(p.mode());
+         }
+     }
+-    dir_options
+-        .create(&path)
+-        .with_err_path(|| &path)
+-        .map(|_| TempDir {
+-            path: path.into_boxed_path(),
+-            disable_cleanup,
+-        })
++    dir_options.create(&path).with_err_path(|| &path)?;
++    // In a cache shared with a group, give the group access to the directory.
++    let _ = shared_cache_group::fix_path(&path);
++    Ok(TempDir {
++        path: path.into_boxed_path(),
++        disable_cleanup,
++    })
+ }
+diff -ruN a/tempfile/src/file/imp/unix.rs b/tempfile/src/file/imp/unix.rs
+--- a/tempfile/src/file/imp/unix.rs
++++ b/tempfile/src/file/imp/unix.rs
+@@ -23,7 +23,10 @@
+         open_options.mode(permissions.map(|p| p.mode()).unwrap_or(0o600));
+     }
+ 
+-    open_options.open(path)
++    let file = open_options.open(path)?;
++    // In a cache shared with a group, give the group access to the file it will become.
++    let _ = shared_cache_group::fix_file(&file, path);
++    Ok(file)
+ }
+ 
+ fn create_unlinked(path: &Path) -> io::Result<File> {
+@@ -92,6 +95,13 @@
+ }
+ 
+ pub fn persist(old_path: &Path, new_path: &Path, overwrite: bool) -> io::Result<()> {
++    persist_inner(old_path, new_path, overwrite)?;
++    // The temporary file may have been created outside a cache shared with a group.
++    let _ = shared_cache_group::fix_path(new_path);
++    Ok(())
++}
++
++fn persist_inner(old_path: &Path, new_path: &Path, overwrite: bool) -> io::Result<()> {
+     if overwrite {
+         rename(old_path, new_path)?;
+     } else {
+diff -ruN a/uv-build-frontend/src/lib.rs b/uv-build-frontend/src/lib.rs
+--- a/uv-build-frontend/src/lib.rs
++++ b/uv-build-frontend/src/lib.rs
+@@ -1270,6 +1270,23 @@
+         environment_variables: &FxHashMap<OsString, OsString>,
+         modified_path: &OsString,
+     ) -> Result<PythonRunnerOutput, Error> {
++        let output = self
++            .run_script_unshared(venv, script, source_tree, environment_variables, modified_path)
++            .await;
++        // Build backends write into the source tree with the user's umask; in a cache shared
++        // with a group (an unpacked source distribution), give the group access to it.
++        let _ = shared_cache_group::fix_tree(source_tree);
++        output
++    }
++
++    async fn run_script_unshared(
++        &self,
++        venv: &PythonEnvironment,
++        script: &str,
++        source_tree: &Path,
++        environment_variables: &FxHashMap<OsString, OsString>,
++        modified_path: &OsString,
++    ) -> Result<PythonRunnerOutput, Error> {
+         /// Read lines from a reader and store them in a buffer.
+         async fn read_from(
+             mut reader: tokio::io::Split<tokio::io::BufReader<impl tokio::io::AsyncRead + Unpin>>,

@@ -141,13 +141,15 @@ pub async fn fetch_index(
     }
 
     // Open and lock the cache file
-    let cache_file = tokio::fs::OpenOptions::new()
+    // Created group-writable in a cache shared with a group.
+    let cache_file = fs_err::tokio::OpenOptions::new()
         .write(true)
         .read(true)
         .truncate(false)
         .create(true)
         .open(&cache_path)
         .await
+        .map(|file| file.into_parts().0)
         .map_err(|err| {
             GatewayError::IoError(format!("failed to open '{}'", cache_path.display()), err)
         })?;
