@@ -33,6 +33,8 @@ curl -fsSL https://github.com/ebetica/pixi/releases/latest/download/install.sh |
 # point the user at a shared cache too (adds `export PIXI_CACHE_DIR=...` to the shell rc):
 curl -fsSL https://github.com/ebetica/pixi/releases/latest/download/install.sh \
   | PIXI_SHARED_CACHE_DIR=/shared/pixi-cache sh
+# a specific version (the v0.83.0.biohub release):
+curl -fsSL https://github.com/ebetica/pixi/releases/download/v0.83.0.biohub/install.sh | PIXI_VERSION=0.83.0 sh
 ```
 
 The installer is `install/install-shared-cache.sh`. It installs into `~/.pixi/bin`,
@@ -40,12 +42,30 @@ replacing an upstream pixi there. It checks the release checksum and warns if th
 cache directory or your umask will not work for sharing. Only Linux x86_64
 builds exist so far.
 
+## Switching versions
+
+When a workspace's `requires-pixi` is not satisfied, this pixi looks for the
+newest release of this fork tagged `v<version>.biohub` whose version satisfies
+it, installs its binary into `$PIXI_HOME/versions/<version>/pixi` (checksum
+verified, renamed into place) and re-runs itself with that binary and the same
+arguments and environment. A matching version that is already installed is used
+without network access. Only releases of this fork are used, never upstream
+pixi; without a matching fork release the usual `requires-pixi` error is shown,
+with the versions that are available. See `crates/pixi_cli/src/auto_switch.rs`.
+
+- `PIXI_NO_AUTO_SWITCH=1` turns this off.
+- `PIXI_AUTO_SWITCHED_EXE` is set on the re-run process, so a binary that still
+  does not satisfy the requirement fails instead of switching again.
+- Releases are listed through the GitHub API, which allows 60 unauthenticated
+  requests per hour per IP; set `GITHUB_TOKEN` if that is not enough.
+
 ## Releasing
 
-Tag the rebased branch `v<version>-shared-cache`, then attach these release assets:
+Tag the rebased branch `v<version>.biohub` (the binary itself reports plain
+`<version>`), then attach these release assets:
 `pixi-x86_64-unknown-linux-musl.tar.gz`, its `.sha256`, and
 `install/install-shared-cache.sh` renamed to `install.sh`. Mark the release
-as latest.
+as latest unless it is an older pixi version published for pinned workspaces.
 
 ## Rebasing onto a new pixi release
 

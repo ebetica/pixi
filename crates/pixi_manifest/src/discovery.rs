@@ -4,7 +4,7 @@
 use std::{
     path::{Path, PathBuf},
     str::FromStr,
-    sync::Arc,
+    sync::{Arc, OnceLock},
 };
 
 use miette::{Diagnostic, NamedSource, SourceSpan};
@@ -205,15 +205,53 @@ pub enum WorkspaceDiscoveryError {
     "this project requires pixi '{requires_pixi}', but you have pixi {}",
     consts::PIXI_VERSION
 )]
-#[diagnostic(help(
-    "install a version of pixi that satisfies '{requires_pixi}' with `pixi self-update --version <version>` (a plain `pixi self-update` installs the latest version, which may not satisfy this requirement)"
-))]
 pub struct PixiVersionMismatchError {
     pub requires_pixi: VersionSpec,
     #[source_code]
     pub source_code: NamedSource<Arc<str>>,
     #[label("this version requirement is not satisfied")]
     pub span: SourceSpan,
+    #[help]
+    pub help: String,
+}
+
+impl PixiVersionMismatchError {
+    /// Builds the error for an unsatisfied `requires-pixi`. If a
+    /// [`VersionMismatchHandler`] is set, it runs first: it may replace the
+    /// process with a matching pixi and never return, or return a hint that
+    /// replaces the default help.
+    pub fn new(
+        requires_pixi: VersionSpec,
+        source_code: NamedSource<Arc<str>>,
+        span: SourceSpan,
+    ) -> Self {
+        let help = VERSION_MISMATCH_HANDLER
+            .get()
+            .and_then(|handler| handler(&requires_pixi))
+            .unwrap_or_else(|| {
+                format!(
+                    "install a version of pixi that satisfies '{requires_pixi}' with `pixi self-update --version <version>` (a plain `pixi self-update` installs the latest version, which may not satisfy this requirement)"
+                )
+            });
+        Self {
+            requires_pixi,
+            source_code,
+            span,
+            help,
+        }
+    }
+}
+
+/// Called when a manifest's `requires-pixi` is not satisfied by this pixi. It
+/// may replace the process (and then never returns), or return a hint for the
+/// error.
+pub type VersionMismatchHandler = fn(&VersionSpec) -> Option<String>;
+
+static VERSION_MISMATCH_HANDLER: OnceLock<VersionMismatchHandler> = OnceLock::new();
+
+/// Sets the [`VersionMismatchHandler`]. Only the first call has an effect.
+pub fn set_version_mismatch_handler(handler: VersionMismatchHandler) {
+    let _ = VERSION_MISMATCH_HANDLER.set(handler);
 }
 
 #[derive(Debug, Error, Diagnostic)]
@@ -502,11 +540,11 @@ impl WorkspaceDiscoverer {
                         requires_pixi,
                         span,
                     } => {
-                        return Err(Box::new(PixiVersionMismatchError {
+                        return Err(Box::new(PixiVersionMismatchError::new(
                             requires_pixi,
-                            source_code: source,
+                            source,
                             span,
-                        })
+                        ))
                         .into());
                     }
                     RequiresPixiCheck::Invalid { span, parse_error } => {

@@ -20,6 +20,7 @@ use std::{env, io::IsTerminal, process::ExitCode};
 use tracing::level_filters::LevelFilter;
 
 pub mod add;
+mod auto_switch;
 pub mod build;
 pub mod clean;
 pub mod cli_config;
@@ -286,6 +287,7 @@ pub async fn execute() -> miette::Result<ExitCode> {
     }
 
     setup_logging(&args, use_colors)?;
+    auto_switch::install();
     pixi_global::report::set_verbosity(args.global_options.report_verbosity());
 
     let (Some(command), global_options) = (args.command, args.global_options) else {

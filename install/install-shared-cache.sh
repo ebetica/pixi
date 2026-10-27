@@ -12,7 +12,8 @@
 #     | PIXI_SHARED_CACHE_DIR=/shared/pixi-cache sh
 #
 # Environment variables:
-#   PIXI_VERSION           pixi version to install, e.g. 0.83.0 (default: latest fork release)
+#   PIXI_VERSION           pixi version to install, e.g. 0.83.0 for the v0.83.0.biohub release
+#                          (default: latest fork release)
 #   PIXI_HOME              default: ~/.pixi; the binary goes into $PIXI_HOME/bin
 #   PIXI_BIN_DIR           install directory (default: $PIXI_HOME/bin)
 #   PIXI_SHARED_CACHE_DIR  shared cache directory to export as PIXI_CACHE_DIR in your shell rc
@@ -38,8 +39,10 @@ esac
 if [ "$VERSION" = "latest" ]; then
     BASE="${REPOURL%/}/releases/latest/download"
 else
+    # Fork releases are tagged v<version>.biohub; accept 0.83.0, v0.83.0 or v0.83.0.biohub.
     V="${VERSION#v}"
-    BASE="${REPOURL%/}/releases/download/v${V%-shared-cache}-shared-cache"
+    V="${V%.biohub}"
+    BASE="${REPOURL%/}/releases/download/v${V}.biohub"
 fi
 
 if command -v curl >/dev/null 2>&1; then

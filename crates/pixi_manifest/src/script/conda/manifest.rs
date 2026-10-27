@@ -182,11 +182,11 @@ impl CondaScriptManifest {
                 requires_pixi,
                 span,
             } => {
-                return Err(Box::new(PixiVersionMismatchError {
+                return Err(Box::new(PixiVersionMismatchError::new(
                     requires_pixi,
-                    source_code: NamedSource::new(source_name, source),
-                    span: block.source_map.span(span.offset(), span.len(), 0),
-                })
+                    NamedSource::new(source_name, source),
+                    block.source_map.span(span.offset(), span.len(), 0),
+                ))
                 .into());
             }
             RequiresPixiCheck::Invalid { span, parse_error } => {

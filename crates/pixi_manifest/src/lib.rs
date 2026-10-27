@@ -37,7 +37,8 @@ pub use channel::PrioritizedChannel;
 pub use dependencies::{CondaConstraints, CondaDependencies, PyPiDependencies};
 pub use discovery::{
     DiscoveryStart, ExplicitManifestError, InvalidRequiresPixiError, LoadManifestsError, Manifests,
-    PixiVersionMismatchError, WorkspaceDiscoverer, WorkspaceDiscoveryError,
+    PixiVersionMismatchError, VersionMismatchHandler, WorkspaceDiscoverer,
+    WorkspaceDiscoveryError, set_version_mismatch_handler,
 };
 pub use environment::{Environment, EnvironmentName, NewEnvironment, ParseEnvironmentNameError};
 pub use error::{DependencyError, GenericError, TomlError, UnknownFeature};
