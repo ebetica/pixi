@@ -1,0 +1,125 @@
+diff --git a/crates/rattler_cache/src/run_exports_cache/mod.rs b/crates/rattler_cache/src/run_exports_cache/mod.rs
+index adbc3125..0fcaeb88 100644
+--- a/crates/rattler_cache/src/run_exports_cache/mod.rs
++++ b/crates/rattler_cache/src/run_exports_cache/mod.rs
+@@ -208,6 +208,7 @@ impl RunExportsCache {
+         let download_reporter = reporter.clone();
+ 
+         let extension = cache_key.extension.clone();
++        let cache_dir = self.inner.path.clone();
+         // Get or fetch the package, using the specified fetch function
+         self.get_or_fetch(cache_key, move || {
+ 
+@@ -229,6 +230,7 @@ impl RunExportsCache {
+             let retry_policy = retry_policy.clone();
+             let download_reporter = download_reporter.clone();
+             let extension = extension.clone();
++            let cache_dir = cache_dir.clone();
+ 
+             async move {
+                 let mut current_try = 0;
+@@ -259,7 +261,11 @@ impl RunExportsCache {
+                     // Extract any potential error
+                     let err = match temp_file {
+                         Ok(result) => {
+-                            let output_temp_file = NamedTempFile::new()?;
++                            // Created in the cache directory, so that it inherits the default
++                            // ACL of a shared cache.
++                            tokio_fs::create_dir_all(&cache_dir).await?;
++                            let output_temp_file = rattler_shared_tempfile::builder()
++                                .tempfile_in(&cache_dir)?;
+                             // Clone the file handler to be able to pass it to the blocking task
+                             let mut file_handler = output_temp_file.as_file().try_clone()?;
+                             // now extract run_exports.json from the archive without unpacking
+diff --git a/crates/rattler_conda_types/src/prefix_record.rs b/crates/rattler_conda_types/src/prefix_record.rs
+index 2ac66325..d95bdc2e 100644
+--- a/crates/rattler_conda_types/src/prefix_record.rs
++++ b/crates/rattler_conda_types/src/prefix_record.rs
+@@ -12,7 +12,6 @@ use rayon::prelude::*;
+ use serde::{Deserialize, Serialize};
+ use serde_repr::{Deserialize_repr, Serialize_repr};
+ use serde_with::serde_as;
+-use tempfile::NamedTempFile;
+ 
+ use crate::utils::serde::is_none_or_empty_string;
+ use crate::{
+@@ -299,13 +298,16 @@ impl PrefixRecord {
+         })?;
+ 
+         // Use a temporary file in the same directory for atomic writes
+-        let temp_file = NamedTempFile::with_prefix_in("prefix_record_", parent).map_err(|e| {
+-            std::io::Error::other(format!(
+-                "Failed to create temporary file in '{}': {}",
+-                parent.display(),
+-                e
+-            ))
+-        })?;
++        let temp_file = rattler_shared_tempfile::builder()
++            .prefix("prefix_record_")
++            .tempfile_in(parent)
++            .map_err(|e| {
++                std::io::Error::other(format!(
++                    "Failed to create temporary file in '{}': {}",
++                    parent.display(),
++                    e
++                ))
++            })?;
+ 
+         // Write to temp file with buffered writer
+         let writer = BufWriter::with_capacity(64 * 1024, &temp_file);
+diff --git a/crates/rattler_repodata_gateway/src/fetch/with_cache.rs b/crates/rattler_repodata_gateway/src/fetch/with_cache.rs
+index f219ac58..4dda644c 100644
+--- a/crates/rattler_repodata_gateway/src/fetch/with_cache.rs
++++ b/crates/rattler_repodata_gateway/src/fetch/with_cache.rs
+@@ -562,8 +562,9 @@ async fn stream_and_decode_to_file(
+     );
+ 
+     // Construct a temporary file
+-    let temp_file =
+-        NamedTempFile::new_in(temp_dir).map_err(FetchRepoDataError::FailedToCreateTemporaryFile)?;
++    let temp_file = rattler_shared_tempfile::builder()
++        .tempfile_in(temp_dir)
++        .map_err(FetchRepoDataError::FailedToCreateTemporaryFile)?;
+ 
+     // Clone the file handle and create a hashing writer so we can compute a hash
+     // while the content is being written to disk.
+diff --git a/crates/rattler_repodata_gateway/src/gateway/sharded_subdir/tokio/mod.rs b/crates/rattler_repodata_gateway/src/gateway/sharded_subdir/tokio/mod.rs
+index ca05f663..d7df0efa 100644
+--- a/crates/rattler_repodata_gateway/src/gateway/sharded_subdir/tokio/mod.rs
++++ b/crates/rattler_repodata_gateway/src/gateway/sharded_subdir/tokio/mod.rs
+@@ -340,7 +340,7 @@ async fn write_shard_to_cache(
+         let shard_cache_parent_path = shard_cache_path
+             .parent()
+             .expect("file path must have a parent");
+-        let mut temp_file = tempfile::Builder::new()
++        let mut temp_file = rattler_shared_tempfile::builder()
+             .tempfile_in(
+                 shard_cache_path
+                     .parent()
+diff --git a/crates/rattler_virtual_package_detectors/src/cache.rs b/crates/rattler_virtual_package_detectors/src/cache.rs
+index 6fae47ac..42117486 100644
+--- a/crates/rattler_virtual_package_detectors/src/cache.rs
++++ b/crates/rattler_virtual_package_detectors/src/cache.rs
+@@ -319,7 +319,8 @@ impl ResultCache {
+         let bytes = serde_json::to_vec_pretty(&entry)?;
+         // Written next to the entry and renamed into place, so a reader never
+         // sees a partial file.
+-        let (file, temporary) = tempfile::NamedTempFile::new_in(&self.root)
++        let (file, temporary) = rattler_shared_tempfile::builder()
++            .tempfile_in(&self.root)
+             .map_err(io_error)?
+             .into_parts();
+         let mut file = tokio::fs::File::from_std(file);
+diff --git a/crates/rattler_virtual_packages/src/cuda/cache.rs b/crates/rattler_virtual_packages/src/cuda/cache.rs
+index f3755f88..797a7db7 100644
+--- a/crates/rattler_virtual_packages/src/cuda/cache.rs
++++ b/crates/rattler_virtual_packages/src/cuda/cache.rs
+@@ -450,7 +450,7 @@ pub(super) fn write_with_env(
+     // Write to a temporary file in the cache directory and persist it into place so concurrent
+     // readers never see a partial cache file.
+     let path = cache_dir.join(CACHE_FILE_NAME);
+-    let mut tmp = match tempfile::NamedTempFile::new_in(cache_dir) {
++    let mut tmp = match rattler_shared_tempfile::builder().tempfile_in(cache_dir) {
+         Ok(tmp) => tmp,
+         Err(err) => {
+             tracing::debug!(

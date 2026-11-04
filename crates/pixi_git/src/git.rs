@@ -50,6 +50,34 @@ pub static GIT: LazyLock<Result<PathBuf, GitBinaryError>> = LazyLock::new(|| {
     })
 });
 
+/// A `git` command for the cache. See [`shared_git_config`].
+fn git_command() -> Result<Command, GitBinaryError> {
+    let mut cmd = Command::new(GIT.as_ref().map_err(|e| e.clone())?);
+    shared_git_config(&mut cmd);
+    Ok(cmd)
+}
+
+/// In a shared cache (`[cache] shared`), git must keep the
+/// repositories it writes usable by the other users (it otherwise follows the
+/// umask), and must work in repositories that another user created, which it
+/// refuses by default. The settings are appended to any `GIT_CONFIG_COUNT`
+/// configuration in the environment.
+fn shared_git_config(cmd: &mut Command) {
+    let settings = shared_cache_perms::git_config();
+    if settings.is_empty() {
+        return;
+    }
+    let base = std::env::var("GIT_CONFIG_COUNT")
+        .ok()
+        .and_then(|count| count.parse::<usize>().ok())
+        .unwrap_or(0);
+    for (i, (key, value)) in settings.iter().enumerate() {
+        cmd.env(format!("GIT_CONFIG_KEY_{}", base + i), key);
+        cmd.env(format!("GIT_CONFIG_VALUE_{}", base + i), value);
+    }
+    cmd.env("GIT_CONFIG_COUNT", (base + settings.len()).to_string());
+}
+
 /// Cached `git lfs` invoker. Probes `git lfs version` once; on success
 /// callers get a `GitLfs` whose [`GitLfs::cmd`] returns a fresh `Command`
 /// pre-set to `git lfs ...` with the terminal prompt disabled. Mirrors uv's
@@ -83,6 +111,7 @@ impl GitLfs {
     pub fn cmd(&self) -> Command {
         let mut c = Command::new(&self.git);
         c.arg("lfs").env(GIT_TERMINAL_PROMPT, "0");
+        shared_git_config(&mut c);
         c
     }
 }
@@ -438,7 +467,7 @@ impl GitDatabase {
     /// Get a short OID for a `revision`, usually 7 chars or more if ambiguous.
     pub(crate) fn to_short_id(&self, revision: GitOid) -> Result<String, GitError> {
         let output = git_output(
-            Command::new(GIT.as_ref().map_err(|e| e.clone())?)
+            git_command()?
                 .arg("rev-parse")
                 .arg("--short")
                 .arg(revision.as_str())
@@ -468,11 +497,7 @@ impl GitRepository {
     /// Opens an existing Git repository at `path`.
     pub(crate) fn open(path: &Path) -> Result<GitRepository, GitError> {
         // Make sure there is a Git repository at the specified path.
-        git_output(
-            Command::new(GIT.as_ref().map_err(|e| e.clone())?)
-                .arg("rev-parse")
-                .current_dir(path),
-        )?;
+        git_output(git_command()?.arg("rev-parse").current_dir(path))?;
 
         Ok(GitRepository {
             path: path.to_path_buf(),
@@ -482,11 +507,8 @@ impl GitRepository {
     /// Initializes a Git repository at `path`.
     fn init(path: &Path) -> Result<GitRepository, GitError> {
         // Initialize the repository.
-        git_output(
-            Command::new(GIT.as_ref().map_err(|e| e.clone())?)
-                .arg("init")
-                .current_dir(path),
-        )?;
+        git_output(git_command()?.arg("init").current_dir(path))?;
+        let _ = shared_cache_perms::fix_tree(path);
 
         Ok(GitRepository {
             path: path.to_path_buf(),
@@ -496,7 +518,7 @@ impl GitRepository {
     /// Parses the object ID of the given `refname`.
     fn rev_parse(&self, refname: &str) -> Result<GitOid, GitError> {
         let result = git_output(
-            Command::new(GIT.as_ref().map_err(|e| e.clone())?)
+            git_command()?
                 .arg("rev-parse")
                 .arg(refname)
                 .current_dir(&self.path),
@@ -602,7 +624,7 @@ impl GitCheckout {
         // hardlinks to set up the repository. This should speed up the clone operation
         // quite a bit if it works.
         let output = git_output(
-            Command::new(GIT.as_ref().map_err(|e| e.clone())?)
+            git_command()?
                 .arg("clone")
                 .arg("--local")
                 // Make sure to pass the local file path and not a file://... url. If given a url,
@@ -691,7 +713,7 @@ impl GitCheckout {
         let skip_smudge = lfs_skip_smudge_env(lfs);
 
         // Perform the hard reset.
-        let mut reset_cmd = Command::new(GIT.as_ref().map_err(|e| e.clone())?);
+        let mut reset_cmd = git_command()?;
         if let Some(url) = offline_lfs_url {
             // The smudge filter is allowed to run offline because the local
             // database holds validated LFS artifacts. Pin the LFS endpoint to
@@ -726,7 +748,7 @@ impl GitCheckout {
         // are never part of the bare database, so this clones them from their
         // remotes — in offline mode restrict git to the local `file`
         // transport so no network access can occur.
-        let mut submodule_cmd = Command::new(GIT.as_ref().map_err(|e| e.clone())?);
+        let mut submodule_cmd = git_command()?;
         submodule_cmd
             .arg("submodule")
             .arg("update")
@@ -771,11 +793,15 @@ impl GitCheckout {
             && ((lfs_forced_skip && self.repo.has_lfs_files())
                 || self.repo.path.join(".gitmodules").exists()))
             || (lfs == Some(true) && GIT_LFS.is_err());
+        // In a shared cache, the checked-out files follow the umask;
+        // give the other users access to them before the checkout is marked ready.
+        let _ = shared_cache_perms::fix_tree(&self.repo.path);
         if lfs_degraded {
-            fs_err::write(ok_file, CHECKOUT_LFS_DEGRADED)?;
+            fs_err::write(&ok_file, CHECKOUT_LFS_DEGRADED)?;
         } else {
-            fs_err::File::create(ok_file)?;
+            fs_err::File::create(&ok_file)?;
         }
+        let _ = shared_cache_perms::fix_path(&ok_file);
         Ok(())
     }
 }
@@ -986,6 +1012,7 @@ fn fetch_lfs(
         .env_remove(GIT_LFS_SKIP_SMUDGE)
         .current_dir(&repo.path)
         .output()?;
+    let _ = shared_cache_perms::fix_tree(&repo.path);
     if !output.status.success() {
         let stderr = String::from_utf8(output.stderr)?;
         return Err(GitError::LfsFetch(url.to_string(), stderr));
@@ -1003,7 +1030,7 @@ fn fetch_with_cli(
     tags: bool,
     offline: bool,
 ) -> Result<(), GitError> {
-    let mut cmd = Command::new(GIT.as_ref().map_err(|err| err.clone())?);
+    let mut cmd = git_command()?;
     cmd.arg("fetch");
     if tags {
         cmd.arg("--tags");
@@ -1038,6 +1065,9 @@ fn fetch_with_cli(
     // // The required `on...line` callbacks currently do nothing.
     // // The output appears to be included in error messages by default.
     let output = cmd.output()?;
+    // `core.sharedRepository` does not cover every file git writes (`FETCH_HEAD`),
+    // and the next user to fetch into this database has to rewrite them.
+    let _ = shared_cache_perms::fix_tree(&repo.path);
     if !output.status.success() {
         let stderr = String::from_utf8(output.stderr)?;
         if offline && stderr.contains("transport '") && stderr.contains("' not allowed") {

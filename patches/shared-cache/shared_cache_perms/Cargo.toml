@@ -1,0 +1,10 @@
+[package]
+name = "shared_cache_perms"
+version = "0.1.0"
+edition = "2024"
+description = "Keep cache directories shared by several users readable and writable by all of them, whatever their umask"
+license = "BSD-3-Clause"
+publish = false
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"

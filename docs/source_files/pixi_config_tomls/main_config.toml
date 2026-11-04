@@ -64,6 +64,10 @@ repodata = "/shared/hpc/repodata"  # repodata cache
 # - "always": redirect every kind when the root looks like netfs.
 # - "never": never redirect.
 netfs-redirect = "auto"
+
+# Share the cache with every user of the host: directories get mode 0777 and
+# files 0666, whatever the umask. Only for node-local caches on clusters.
+shared = true
 # --8<-- [end:cache]
 
 # --8<-- [start:repodata-config]

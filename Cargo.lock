@@ -1439,8 +1439,6 @@ dependencies = [
 [[package]]
 name = "cacache"
 version = "13.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c5063741c7b2e260bbede781cf4679632dd90e2718e99f7715e46824b65670b"
 dependencies = [
  "digest 0.10.7",
  "either",
@@ -1455,6 +1453,7 @@ dependencies = [
  "serde_json",
  "sha1 0.10.6",
  "sha2 0.10.9",
+ "shared_cache_perms",
  "ssri",
  "tempfile",
  "thiserror 1.0.69",
@@ -3032,10 +3031,9 @@ dependencies = [
 [[package]]
 name = "fs-err"
 version = "3.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5c95b673b8f6f7235229ae11c5642d81b04c2e64c1e2fb417bc0cf73ca45f29"
 dependencies = [
  "autocfg",
+ "shared_cache_perms",
  "tokio",
 ]
 
@@ -6512,6 +6510,7 @@ dependencies = [
  "pypi_modifiers",
  "rattler",
  "rattler_conda_types",
+ "rattler_digest",
  "rattler_index",
  "rattler_lock",
  "rattler_networking",
@@ -6734,6 +6733,7 @@ dependencies = [
  "serde",
  "serde_ignored",
  "serde_json",
+ "shared_cache_perms",
  "temp-env",
  "tempfile",
  "thiserror 2.0.21",
@@ -6908,6 +6908,7 @@ dependencies = [
  "rattler_networking",
  "reqwest",
  "serde",
+ "shared_cache_perms",
  "tempfile",
  "thiserror 2.0.21",
  "tokio",
@@ -8445,8 +8446,6 @@ dependencies = [
 [[package]]
 name = "rattler_cache"
 version = "0.10.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f43114d97617813f947c0b545e0cb71a08fd7260364c13e207d9d6a6c110549"
 dependencies = [
  "ahash",
  "anyhow",
@@ -8465,10 +8464,12 @@ dependencies = [
  "rattler_networking",
  "rattler_package_streaming",
  "rattler_redaction",
+ "rattler_shared_tempfile",
  "rayon",
  "reqwest",
  "rustix 1.1.4",
  "serde_json",
+ "shared_cache_perms",
  "simple_spawn_blocking",
  "tempfile",
  "thiserror 2.0.21",
@@ -8480,8 +8481,6 @@ dependencies = [
 [[package]]
 name = "rattler_conda_types"
 version = "0.56.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "25e04b7f01f1ce961561ab2505fbc9c607d7709d39812270a3ef4cd38e90038f"
 dependencies = [
  "ahash",
  "core-foundation 0.10.1",
@@ -8503,6 +8502,7 @@ dependencies = [
  "rattler_digest",
  "rattler_macros",
  "rattler_redaction",
+ "rattler_shared_tempfile",
  "rayon",
  "regex",
  "serde",
@@ -8839,8 +8839,6 @@ dependencies = [
 [[package]]
 name = "rattler_repodata_gateway"
 version = "0.36.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4a26695e99cfc27596e2b26d9d7fcd34c45cfeda259670599f0f1af711eb2439"
 dependencies = [
  "ahash",
  "anyhow",
@@ -8879,6 +8877,7 @@ dependencies = [
  "rattler_networking",
  "rattler_package_streaming",
  "rattler_redaction",
+ "rattler_shared_tempfile",
  "reqwest",
  "retry-policies",
  "rmp-serde",
@@ -8887,6 +8886,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with",
+ "shared_cache_perms",
  "simple_spawn_blocking",
  "strum",
  "superslice",
@@ -8921,6 +8921,13 @@ dependencies = [
  "reqsign-core",
  "thiserror 2.0.21",
  "url",
+]
+
+[[package]]
+name = "rattler_shared_tempfile"
+version = "0.1.0"
+dependencies = [
+ "tempfile",
 ]
 
 [[package]]
@@ -9033,8 +9040,6 @@ dependencies = [
 [[package]]
 name = "rattler_virtual_package_detectors"
 version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46d54add7968c309a28f979ee92ceca79c86a10d975d0b60db3500669c616155"
 dependencies = [
  "async-trait",
  "fs-err",
@@ -9051,6 +9056,7 @@ dependencies = [
  "rattler_networking",
  "rattler_prefix_guard",
  "rattler_repodata_gateway",
+ "rattler_shared_tempfile",
  "rattler_shell",
  "rattler_solve",
  "serde",
@@ -9065,8 +9071,6 @@ dependencies = [
 [[package]]
 name = "rattler_virtual_packages"
 version = "8.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9db9633fa1296ec90e50d6de7d427ac0a2922f20869b83c6d074e3a20433369d"
 dependencies = [
  "archspec",
  "libloading",
@@ -9075,6 +9079,7 @@ dependencies = [
  "plist",
  "rattler_boot_id",
  "rattler_conda_types",
+ "rattler_shared_tempfile",
  "regex",
  "serde",
  "serde_json",
@@ -10340,6 +10345,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "shared_cache_perms"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "shell-escape"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11097,13 +11109,12 @@ dependencies = [
 [[package]]
 name = "tempfile"
 version = "3.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.4.2",
+ "getrandom 0.3.4",
  "once_cell",
  "rustix 1.1.4",
+ "shared_cache_perms",
  "windows-sys 0.52.0",
 ]
 
@@ -11949,8 +11960,6 @@ dependencies = [
 [[package]]
 name = "uv-build-frontend"
 version = "0.0.90"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26cad8553610921e1e8ac1d79171a7c1a6910de7933b3aed95ff137d2bc8e391"
 dependencies = [
  "anstream",
  "fs-err",
@@ -11961,6 +11970,7 @@ dependencies = [
  "rustc-hash",
  "serde",
  "serde_json",
+ "shared_cache_perms",
  "tempfile",
  "thiserror 2.0.21",
  "tokio",
@@ -12424,8 +12434,6 @@ dependencies = [
 [[package]]
 name = "uv-git"
 version = "0.0.90"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b011c62442009e130db0809d3bc8c258066c8fe365e42517b1c572cd594c3bac"
 dependencies = [
  "anyhow",
  "astral-reqwest-middleware",
@@ -12434,6 +12442,7 @@ dependencies = [
  "owo-colors",
  "papaya",
  "reqwest",
+ "shared_cache_perms",
  "thiserror 2.0.21",
  "tokio",
  "tracing",

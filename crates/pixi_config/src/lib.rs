@@ -457,6 +457,12 @@ pub struct CacheConfig {
     /// How to handle a cache that lives on a network filesystem.
     #[serde(default, skip_serializing_if = "NetfsRedirect::is_default")]
     pub netfs_redirect: NetfsRedirect,
+
+    /// Share the cache between all users of the host: directories pixi
+    /// creates in the cache get mode `0777` and files `0666`, whatever the
+    /// umask. Detached environments are not shared.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub shared: Option<bool>,
 }
 
 impl CacheConfig {
@@ -500,6 +506,7 @@ impl CacheConfig {
             } else {
                 other.netfs_redirect
             },
+            shared: other.shared.or(self.shared),
         }
     }
 
@@ -703,6 +710,79 @@ fn resolve_cache_kind_dir(
     }
     Ok(redirected)
 }
+
+/// Whether the cache is shared: `PIXI_CACHE_SHARED` if it is set, else
+/// `[cache.shared]`.
+fn cache_is_shared(cache_cfg: &CacheConfig) -> bool {
+    let from_config = cache_cfg.shared.unwrap_or(false);
+    let Ok(value) = std::env::var("PIXI_CACHE_SHARED") else {
+        return from_config;
+    };
+    match value.trim().to_ascii_lowercase().as_str() {
+        "1" | "true" | "yes" | "on" => true,
+        "" | "0" | "false" | "no" | "off" => false,
+        _ => {
+            tracing::warn!("ignoring PIXI_CACHE_SHARED={value}, expected 1 or 0");
+            from_config
+        }
+    }
+}
+
+/// With `[cache] shared = true` in the global config (or
+/// `PIXI_CACHE_SHARED=1`), makes everything pixi and its libraries create in
+/// the cache readable and writable by every user (directories `0777`, files
+/// `0666`), whatever the umask, so that all users of a host can share it.
+///
+/// Shared are the cache root and every cache directory given explicitly
+/// (`[cache.<kind>]`, `PIXI_CACHE_<KIND>_DIR`); detached environments are
+/// not. Anyone who can log in to the host can then change the cached packages,
+/// so this is meant for node-local caches on clusters.
+pub fn activate_shared_cache() {
+    activate_shared_cache_with(&GLOBAL_CACHE_CONFIG);
+}
+
+fn activate_shared_cache_with(cache_cfg: &CacheConfig) {
+    if !cache_is_shared(cache_cfg) {
+        return;
+    }
+    let Some((root, _)) = resolve_cache_root(cache_cfg) else {
+        return;
+    };
+    let mut roots = vec![root];
+    let mut excluded = Vec::new();
+    for kind in ALL_CACHE_KINDS {
+        let Some(dir) =
+            env_path_for(kind).or_else(|| cache_cfg.path_for(kind).map(Path::to_path_buf))
+        else {
+            continue;
+        };
+        if kind == CacheKind::DetachedEnvironments {
+            excluded.push(dir);
+        } else {
+            roots.push(dir);
+        }
+    }
+    // Detached environments default to a directory in the cache root.
+    excluded.push(roots[0].join(CacheKind::DetachedEnvironments.subdir()));
+    tracing::debug!("sharing cache directories {roots:?} (except {excluded:?}) with all users");
+    shared_cache_perms::activate(shared_cache_perms::Mode::world(), roots.clone(), excluded);
+    // Directories this user created before the setting are fixed up too.
+    for dir in roots {
+        let _ = shared_cache_perms::fix_path(&dir);
+    }
+}
+
+/// Every [`CacheKind`].
+const ALL_CACHE_KINDS: [CacheKind; 8] = [
+    CacheKind::CondaPackages,
+    CacheKind::Repodata,
+    CacheKind::PypiWheels,
+    CacheKind::PypiMapping,
+    CacheKind::ExecEnvironments,
+    CacheKind::BuildToolEnvironments,
+    CacheKind::DetachedEnvironments,
+    CacheKind::VirtualPackageDetectors,
+];
 
 /// Resolve the cache root, consulting (in order): `PIXI_CACHE_DIR`,
 /// `RATTLER_CACHE_DIR`, `[cache.root]` in config, XDG, rattler default.
@@ -2125,6 +2205,7 @@ impl Config {
             "cache.pypi-wheels",
             "cache.repodata",
             "cache.root",
+            "cache.shared",
             "concurrency",
             "concurrency.downloads",
             "concurrency.solves",
@@ -2799,6 +2880,7 @@ impl Config {
                     "virtual-package-detectors" => {
                         self.cache.virtual_package_detectors = value.map(PathBuf::from)
                     }
+                    "shared" => self.cache.shared = parse_opt(value, key)?,
                     "netfs-redirect" => {
                         self.cache.netfs_redirect = value
                             .map(|v| NetfsRedirect::from_str(&v))
@@ -5003,6 +5085,43 @@ UNUSED = "unused"
             Some(PathBuf::from("/local/scratch/mapping"))
         );
         assert_eq!(config.cache.netfs_redirect, NetfsRedirect::Never);
+    }
+
+    #[test]
+    fn cache_shared_from_toml_set_and_env() {
+        let _guard = NETFS_ENV_LOCK.lock().unwrap();
+        let toml = r#"
+            [cache]
+            shared = true
+        "#;
+        let (config, _) = Config::from_toml(toml, None).unwrap();
+        assert_eq!(config.cache.shared, Some(true));
+
+        // A later config layer without the key keeps it; one with it wins.
+        let merged = config.cache.clone().merge(CacheConfig::default());
+        assert_eq!(merged.shared, Some(true));
+        let other = CacheConfig {
+            shared: Some(false),
+            ..Default::default()
+        };
+        assert_eq!(config.cache.clone().merge(other).shared, Some(false));
+
+        let mut set = Config::default();
+        set.set("cache.shared", Some("true".into())).unwrap();
+        assert_eq!(set.cache.shared, Some(true));
+        assert!(set.set("cache.shared", Some("maybe".into())).is_err());
+        set.set("cache.shared", None).unwrap();
+        assert_eq!(set.cache.shared, None);
+
+        let _unset = ScopedEnv::unset("PIXI_CACHE_SHARED");
+        assert!(cache_is_shared(&config.cache));
+        assert!(!cache_is_shared(&CacheConfig::default()));
+        let _env = ScopedEnv::set("PIXI_CACHE_SHARED", "1");
+        assert!(cache_is_shared(&CacheConfig::default()));
+        let _env = ScopedEnv::set("PIXI_CACHE_SHARED", "0");
+        assert!(!cache_is_shared(&config.cache));
+        let _env = ScopedEnv::set("PIXI_CACHE_SHARED", "bogus");
+        assert!(cache_is_shared(&config.cache));
     }
 
     #[test]

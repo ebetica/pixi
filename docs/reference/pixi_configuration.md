@@ -503,6 +503,26 @@ The redirect target is chosen from the first non-netfs candidate among
 `$SLURM_TMPDIR`, `$PBS_JOBFS`, `$SCRATCH`, and `$TMPDIR`, falling back to the
 system temp directory.
 
+#### `shared`
+
+Share the cache between all users of the host, for example a node-local cache
+that everyone on a cluster uses:
+
+```toml
+[cache]
+root = "/tmp/pixi-cache"
+shared = true
+```
+
+When set, every directory pixi creates in the cache (the root included) gets
+mode `0777` and every file `0666` (`0777` if it is executable), whatever the
+user's umask, so every user can use and extend what others downloaded. The
+cache root and the explicitly configured per-kind directories are shared;
+detached environments are not. Anyone who can log in to the host can then
+change the cached packages, so only enable this for node-local caches on
+machines whose users trust each other. `PIXI_CACHE_SHARED=1` (or `0`)
+overrides this setting. It is read from the global configuration only.
+
 #### Path syntax
 
 All path fields under `[cache]` (including `root` and every per-kind
@@ -546,6 +566,10 @@ that kind and uses the path verbatim.
 - `PIXI_CACHE_NETFS_REDIRECT` = `auto` | `always` | `never` — overrides
     `[cache.netfs-redirect]`. An unrecognized value is logged and ignored
     (config falls through).
+
+**Shared cache override.**
+
+- `PIXI_CACHE_SHARED` = `1` | `0` — overrides `[cache.shared]`.
 
 **Detection escape hatches.** These force the network-filesystem detection
 itself rather than the policy. They're intended for tests, CI, and one-off

@@ -1,0 +1,1014 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [0.36.3](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.36.2...rattler_repodata_gateway-v0.36.3) - 2026-10-09
+
+### Other
+
+- updated the following local packages: rattler_networking, rattler_package_streaming, rattler_cache
+
+## [0.36.2](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.36.1...rattler_repodata_gateway-v0.36.2) - 2026-10-07
+
+### Other
+
+- bump rust to 1.98.1 ([#2906](https://github.com/conda/rattler/pull/2906))
+
+## [0.36.1](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.36.0...rattler_repodata_gateway-v0.36.1) - 2026-10-06
+
+### Other
+
+- updated the following local packages: rattler_config, rattler_networking, rattler_package_streaming, rattler_cache
+
+## [0.36.0](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.35.0...rattler_repodata_gateway-v0.36.0) - 2026-10-05
+
+### Added
+
+- add rattler_virtual_package_detectors ([#2863](https://github.com/conda/rattler/pull/2863))
+- *(repodata-gateway)* discover virtual package detectors ([#2860](https://github.com/conda/rattler/pull/2860))
+
+### Fixed
+
+- Preserve discovered-channel fetch failures as warnings when resolving detector origins, without discarding unrelated registrations.
+
+## [0.35.0](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.34.0...rattler_repodata_gateway-v0.35.0) - 2026-10-05
+
+### Added
+
+- *(conda-types)* parse virtual package detector registrations ([#2859](https://github.com/conda/rattler/pull/2859))
+- [**breaking**] query multichannels through the gateway ([#2882](https://github.com/conda/rattler/pull/2882))
+
+### Fixed
+
+- refresh sharded index cache policy after 304 ([#2724](https://github.com/conda/rattler/pull/2724))
+
+## [0.34.0](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.33.6...rattler_repodata_gateway-v0.34.0) - 2026-09-29
+
+### Fixed
+
+- resolve extras from sparse repodata ([#2830](https://github.com/conda/rattler/pull/2830))
+
+### Other
+
+- [**breaking**] rename Platform to Subdir and validate names against CEP 26 ([#2787](https://github.com/conda/rattler/pull/2787))
+
+## [0.33.6](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.33.5...rattler_repodata_gateway-v0.33.6) - 2026-09-23
+
+### Added
+
+- add standalone Sigstore attestation verification ([#2794](https://github.com/conda/rattler/pull/2794))
+- Add attestations to PackageRecord and rattler-index/upload ([#2773](https://github.com/conda/rattler/pull/2773))
+
+## [0.33.5](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.33.4...rattler_repodata_gateway-v0.33.5) - 2026-09-17
+
+### Added
+
+- *(rattler_conda_types)* Add indexed_timestamp ([#2790](https://github.com/conda/rattler/pull/2790))
+
+## [0.33.4](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.33.3...rattler_repodata_gateway-v0.33.4) - 2026-09-08
+
+### Added
+
+- report removed packages from repodata gateway queries ([#2751](https://github.com/conda/rattler/pull/2751))
+
+### Fixed
+
+- Automatically disable sharded in whoneeds queries ([#2776](https://github.com/conda/rattler/pull/2776))
+
+## [0.33.3](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.33.2...rattler_repodata_gateway-v0.33.3) - 2026-09-04
+
+### Added
+
+- add repodata whoneeds for reverse dependency lookup ([#2738](https://github.com/conda/rattler/pull/2738))
+
+## [0.33.2](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.33.1...rattler_repodata_gateway-v0.33.2) - 2026-08-27
+
+### Other
+
+- updated the following local packages: rattler_redaction, rattler_package_streaming, rattler_conda_types, rattler_config, rattler_networking, rattler_cache
+
+## [0.33.1](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.33.0...rattler_repodata_gateway-v0.33.1) - 2026-08-26
+
+### Fixed
+
+- prefer newest repodata revision ([#2720](https://github.com/conda/rattler/pull/2720))
+
+### Other
+
+- rename CEP 146 to CEP 48 ([#2717](https://github.com/conda/rattler/pull/2717))
+
+## [0.33.0](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.32.1...rattler_repodata_gateway-v0.33.0) - 2026-08-21
+
+### Added
+
+- *(js)* support custom fetch and record queries in the gateway ([#2687](https://github.com/conda/rattler/pull/2687))
+- Accept sparse repodata in solve ([#2627](https://github.com/conda/rattler/pull/2627))
+- *(py)* expose pip injection for solve APIs ([#2677](https://github.com/conda/rattler/pull/2677))
+- add the CEP 48 repodata wire model ([#2669](https://github.com/conda/rattler/pull/2669))
+
+## [0.32.1](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.32.0...rattler_repodata_gateway-v0.32.1) - 2026-08-15
+
+### Fixed
+
+- honor max-age without public cache directive ([#2664](https://github.com/conda/rattler/pull/2664))
+
+## [0.32.0](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.31.0...rattler_repodata_gateway-v0.32.0) - 2026-08-11
+
+### Added
+
+- add CEP-6 channel notice support ([#2639](https://github.com/conda/rattler/pull/2639))
+
+### Fixed
+
+- *(repodata-gateway)* limit concurrent shard cache reads ([#2163](https://github.com/conda/rattler/pull/2163))
+- *(repodata_gateway)* test remote run_exports against a local server ([#2648](https://github.com/conda/rattler/pull/2648))
+- Failing test ([#2647](https://github.com/conda/rattler/pull/2647))
+
+## [0.31.0](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.30.1...rattler_repodata_gateway-v0.31.0) - 2026-07-24
+
+### Added
+
+- let callers restrict which candidates a solve may pick ([#2609](https://github.com/conda/rattler/pull/2609))
+
+## [0.30.1](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.30.0...rattler_repodata_gateway-v0.30.1) - 2026-07-14
+
+### Other
+
+- update Cargo.toml dependencies
+
+## [0.30.0](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.29.7...rattler_repodata_gateway-v0.30.0) - 2026-07-09
+
+### Added
+
+- *(channel)* add non-panicking Channel::try_from_directory ([#2556](https://github.com/conda/rattler/pull/2556))
+- support CEP-42 in gateway ([#2462](https://github.com/conda/rattler/pull/2462))
+
+### Other
+
+- make the extension mechanism reliable and self-serving ([#2557](https://github.com/conda/rattler/pull/2557))
+
+### Added
+
+- `GatewayBuilder::with_config`/`set_config` (feature `rattler_config`) apply the shared rattler configuration (repodata source config and `concurrency.downloads`). `ChannelConfig` now also implements `From<&CommonConfig>`.
+
+## [0.29.7](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.29.6...rattler_repodata_gateway-v0.29.7) - 2026-06-26
+
+### Other
+
+- updated the following local packages: rattler_networking, rattler_package_streaming, rattler_cache
+
+## [0.29.6](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.29.5...rattler_repodata_gateway-v0.29.6) - 2026-06-17
+
+### Added
+
+- use semaphore for concurrent downloads ([#2475](https://github.com/conda/rattler/pull/2475))
+
+### Fixed
+
+- disable sharded repodata in run_exports remote test ([#2514](https://github.com/conda/rattler/pull/2514))
+
+## [0.29.5](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.29.4...rattler_repodata_gateway-v0.29.5) - 2026-06-09
+
+### Fixed
+
+- (de)serialize `info.repodata_revisions` as dictionary ([#2485](https://github.com/conda/rattler/pull/2485))
+
+## [0.29.4](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.29.3...rattler_repodata_gateway-v0.29.4) - 2026-06-04
+
+### Other
+
+- updated the following local packages: rattler_cache
+
+## [0.29.3](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.29.2...rattler_repodata_gateway-v0.29.3) - 2026-06-02
+
+### Added
+
+- only walk active extras when fetching repodata ([#2447](https://github.com/conda/rattler/pull/2447))
+
+### Fixed
+
+- make sdist PEP 625 conformant and trim test data ([#2470](https://github.com/conda/rattler/pull/2470))
+
+### Other
+
+- graduate extras, conditionals, and flags from experimental ([#2450](https://github.com/conda/rattler/pull/2450))
+- replace `chrono` with `jiff` ([#1905](https://github.com/conda/rattler/pull/1905))
+- update some crates (sigstore, md5, sha2, ...) ([#2444](https://github.com/conda/rattler/pull/2444))
+
+## [0.29.2](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.29.1...rattler_repodata_gateway-v0.29.2) - 2026-05-19
+
+### Other
+
+- updated the following local packages: rattler_conda_types, rattler_config, rattler_networking, rattler_package_streaming, rattler_cache
+
+## [0.29.1](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.29.0...rattler_repodata_gateway-v0.29.1) - 2026-05-19
+
+### Added
+
+- channel index options (TOML) for `rattler-index` ([#2390](https://github.com/conda/rattler/pull/2390))
+
+## [0.29.0](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.28.2...rattler_repodata_gateway-v0.29.0) - 2026-05-13
+
+### Fixed
+
+- repodata fallback path ([#2425](https://github.com/conda/rattler/pull/2425))
+
+### Other
+
+- bump Rust edition to 2024 ([#2429](https://github.com/conda/rattler/pull/2429))
+- remove reqwest 0.12 ([#2427](https://github.com/conda/rattler/pull/2427))
+- upgrade reqwest to 0.13 and bump related crates ([#2419](https://github.com/conda/rattler/pull/2419))
+
+## [0.28.2](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.28.1...rattler_repodata_gateway-v0.28.2) - 2026-05-07
+
+### Fixed
+
+- don't assume path is a file:// url ([#2411](https://github.com/conda/rattler/pull/2411))
+
+## [0.28.1](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.28.0...rattler_repodata_gateway-v0.28.1) - 2026-05-04
+
+### Added
+
+- Handle 501 in sharded repodata ([#2401](https://github.com/conda/rattler/pull/2401))
+
+## [0.28.0](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.27.7...rattler_repodata_gateway-v0.28.0) - 2026-05-01
+
+### Added
+
+- [**breaking**] lockfile v7 ([#2348](https://github.com/conda/rattler/pull/2348))
+
+## [0.27.7](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.27.6...rattler_repodata_gateway-v0.27.7) - 2026-04-30
+
+### Added
+
+- implement simplified variant selection with `flags` ([#2381](https://github.com/conda/rattler/pull/2381))
+- add repodata revisions as proposed in CEP ([#2379](https://github.com/conda/rattler/pull/2379))
+- add support for CEP-42 channel relations in repodata ([#2370](https://github.com/conda/rattler/pull/2370))
+
+### Other
+
+- Added a getting started explainer to README ([#2334](https://github.com/conda/rattler/pull/2334))
+
+## [0.27.6](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.27.5...rattler_repodata_gateway-v0.27.6) - 2026-04-13
+
+### Other
+
+- updated the following local packages: file_url, rattler_conda_types, rattler_networking, rattler_package_streaming, rattler_config, rattler_cache
+
+## [0.27.5](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.27.4...rattler_repodata_gateway-v0.27.5) - 2026-04-08
+
+### Other
+
+- updated the following local packages: rattler_conda_types, rattler_config, rattler_networking, rattler_package_streaming, rattler_cache
+
+## [0.27.4](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.27.3...rattler_repodata_gateway-v0.27.4) - 2026-04-07
+
+### Other
+
+- updated the following local packages: rattler_conda_types, rattler_config, rattler_networking, rattler_package_streaming, rattler_cache
+
+## [0.27.3](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.27.2...rattler_repodata_gateway-v0.27.3) - 2026-03-25
+
+### Other
+
+- updated the following local packages: rattler_conda_types, rattler_config, rattler_networking, rattler_package_streaming, rattler_cache
+
+## [0.27.2](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.27.1...rattler_repodata_gateway-v0.27.2) - 2026-03-20
+
+### Other
+
+- updated the following local packages: rattler_conda_types, rattler_config, rattler_networking, rattler_package_streaming, rattler_cache
+
+## [0.27.1](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.27.0...rattler_repodata_gateway-v0.27.1) - 2026-03-18
+
+### Other
+
+- update Cargo.toml dependencies
+
+## [0.27.0](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.26.2...rattler_repodata_gateway-v0.27.0) - 2026-03-16
+
+### Added
+
+- [**breaking**] Make name in MatchSpec non-optional ([#2132](https://github.com/conda/rattler/pull/2132))
+
+### Fixed
+
+- bz2 cache overwritten with zst state in repodata cache ([#2180](https://github.com/conda/rattler/pull/2180))
+- enable deletion of memory mapped repodata on windows ([#2084](https://github.com/conda/rattler/pull/2084))
+
+## [0.26.2](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.26.1...rattler_repodata_gateway-v0.26.2) - 2026-02-25
+
+### Fixed
+
+- *(gateway)* resolve data race in BarrierCell ([#2101](https://github.com/conda/rattler/pull/2101))
+
+### Other
+
+- experimental repodata v3 ([#2093](https://github.com/conda/rattler/pull/2093))
+
+## [0.26.1](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.26.0...rattler_repodata_gateway-v0.26.1) - 2026-02-20
+
+### Other
+
+- updated the following local packages: rattler_conda_types, rattler_config, rattler_networking, rattler_package_streaming, rattler_cache
+
+## [0.26.0](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.25.12...rattler_repodata_gateway-v0.26.0) - 2026-02-19
+
+### Added
+
+- support glob and regex patterns in repodata queries ([#2036](https://github.com/conda/rattler/pull/2036))
+
+### Other
+
+- bump rust to 1.93.1 ([#2072](https://github.com/conda/rattler/pull/2072))
+- wrap RepoDataRecord in Arc throughout gateway ([#2061](https://github.com/conda/rattler/pull/2061))
+- optimized repodata loading ([#2058](https://github.com/conda/rattler/pull/2058))
+- Typo and clippy fixes ([#2047](https://github.com/conda/rattler/pull/2047))
+- [**breaking**] remove support for JLAP ([#2038](https://github.com/conda/rattler/pull/2038))
+
+## [0.25.12](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.25.11...rattler_repodata_gateway-v0.25.12) - 2026-02-10
+
+### Other
+
+- updated the following local packages: rattler_package_streaming, rattler_cache
+
+## [0.25.11](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.25.10...rattler_repodata_gateway-v0.25.11) - 2026-02-04
+
+### Added
+
+- custom channel sources in repodata gateway ([#2016](https://github.com/conda/rattler/pull/2016))
+- improve error message when shard download / decoding fails ([#2008](https://github.com/conda/rattler/pull/2008))
+
+### Fixed
+
+- issue when run_exports.json is not in sync with the repodata ([#2014](https://github.com/conda/rattler/pull/2014))
+
+## [0.25.10](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.25.9...rattler_repodata_gateway-v0.25.10) - 2026-01-22
+
+### Added
+
+- add support for `packages.whl` to repodata parsing ([#1996](https://github.com/conda/rattler/pull/1996))
+
+## [0.25.9](https://github.com/baszalmstra/rattler/compare/rattler_repodata_gateway-v0.25.8...rattler_repodata_gateway-v0.25.9) - 2026-01-22
+
+### Fixed
+
+- changelog
+
+## [0.25.8](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.25.7...rattler_repodata_gateway-v0.25.8) - 2026-01-22
+
+### Added
+
+- add support for `packages.whl` and wheel archives types ([#1988](https://github.com/conda/rattler/pull/1988))
+
+### Other
+
+- add type for archive file name ([#1999](https://github.com/conda/rattler/pull/1999))
+
+## [0.25.7](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.25.6...rattler_repodata_gateway-v0.25.7) - 2025-12-18
+
+### Added
+
+- add common function to extract package name from matchspec ([#1923](https://github.com/conda/rattler/pull/1923))
+- enable sharded repodata by default ([#1922](https://github.com/conda/rattler/pull/1922))
+
+### Fixed
+
+- always emit depends in index.json ([#1932](https://github.com/conda/rattler/pull/1932))
+- split on ';' when fetching dependencies in repodata ([#1919](https://github.com/conda/rattler/pull/1919))
+
+### Other
+
+- update README.md with new banner image ([#1926](https://github.com/conda/rattler/pull/1926))
+
+## [0.25.6](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.25.5...rattler_repodata_gateway-v0.25.6) - 2025-12-08
+
+### Other
+
+- update Cargo.toml dependencies
+
+## [0.25.5](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.25.4...rattler_repodata_gateway-v0.25.5) - 2025-11-27
+
+### Other
+
+- updated the following local packages: rattler_conda_types, rattler_networking, rattler_config, rattler_package_streaming, rattler_cache
+
+## [0.25.4](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.25.3...rattler_repodata_gateway-v0.25.4) - 2025-11-25
+
+### Added
+
+- *(gateway)* allow cleaning disk cache ([#1881](https://github.com/conda/rattler/pull/1881))
+
+## [0.25.3](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.25.2...rattler_repodata_gateway-v0.25.3) - 2025-11-22
+
+### Other
+
+- updated the following local packages: rattler_conda_types, rattler_package_streaming, rattler_config, rattler_networking, rattler_cache
+
+## [0.25.2](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.25.1...rattler_repodata_gateway-v0.25.2) - 2025-11-20
+
+### Other
+
+- updated the following local packages: rattler_conda_types, rattler_config, rattler_networking, rattler_package_streaming, rattler_cache
+
+## [0.25.1](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.25.0...rattler_repodata_gateway-v0.25.1) - 2025-11-19
+
+### Other
+
+- updated the following local packages: rattler_conda_types, rattler_cache, rattler_config, rattler_networking, rattler_package_streaming
+
+## [0.25.0](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.24.14...rattler_repodata_gateway-v0.25.0) - 2025-11-13
+
+### Added
+
+- Add glob support for package name in matchspec ([#1480](https://github.com/conda/rattler/pull/1480))
+- move repodata fetch logic to tools crate ([#1820](https://github.com/conda/rattler/pull/1820))
+- parse matchspec conditions and translate to resolvo ([#1545](https://github.com/conda/rattler/pull/1545))
+
+## [0.24.14](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.24.13...rattler_repodata_gateway-v0.24.14) - 2025-10-28
+
+### Fixed
+
+- cache 404 response for sharded index ([#1780](https://github.com/conda/rattler/pull/1780))
+
+## [0.24.13](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.24.12...rattler_repodata_gateway-v0.24.13) - 2025-10-25
+
+### Other
+
+- updated the following local packages: rattler_package_streaming, rattler_cache
+
+## [0.24.12](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.24.11...rattler_repodata_gateway-v0.24.12) - 2025-10-18
+
+### Other
+
+- updated the following local packages: rattler_conda_types, rattler_package_streaming, rattler_config, rattler_networking, rattler_cache
+
+## [0.24.11](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.24.10...rattler_repodata_gateway-v0.24.11) - 2025-10-17
+
+### Other
+
+- updated the following local packages: rattler_digest, rattler_conda_types, rattler_config, rattler_networking, rattler_package_streaming, rattler_cache
+
+## [0.24.10](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.24.9...rattler_repodata_gateway-v0.24.10) - 2025-10-16
+
+### Added
+
+- Add progress bar for gateway query/names ([#1743](https://github.com/conda/rattler/pull/1743))
+
+## [0.24.9](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.24.8...rattler_repodata_gateway-v0.24.9) - 2025-10-14
+
+### Other
+
+- updated the following local packages: rattler_digest, rattler_conda_types, rattler_networking, rattler_config, rattler_package_streaming, rattler_cache
+
+## [0.24.8](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.24.7...rattler_repodata_gateway-v0.24.8) - 2025-10-13
+
+### Added
+
+- read index.json directly from local files ([#1729](https://github.com/conda/rattler/pull/1729))
+
+## [0.24.7](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.24.6...rattler_repodata_gateway-v0.24.7) - 2025-10-07
+
+### Other
+
+- updated the following local packages: rattler_networking, rattler_cache, rattler_package_streaming
+
+## [0.24.6](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.24.5...rattler_repodata_gateway-v0.24.6) - 2025-10-03
+
+### Other
+
+- updated the following local packages: rattler_conda_types, rattler_config, rattler_networking, rattler_package_streaming, rattler_cache
+
+## [0.24.5](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.24.4...rattler_repodata_gateway-v0.24.5) - 2025-09-30
+
+### Added
+
+- add Clone for GatewayBuilder ([#1686](https://github.com/conda/rattler/pull/1686))
+
+### Other
+
+- add LazyClient to late initialize the reqwest client ([#1687](https://github.com/conda/rattler/pull/1687))
+- optimize transaction operations ([#1615](https://github.com/conda/rattler/pull/1615))
+
+## [0.24.4](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.24.3...rattler_repodata_gateway-v0.24.4) - 2025-09-05
+
+### Other
+
+- updated the following local packages: coalesced_map, rattler_conda_types, rattler_config, rattler_networking, rattler_package_streaming, rattler_cache
+
+## [0.24.3](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.24.2...rattler_repodata_gateway-v0.24.3) - 2025-09-04
+
+### Added
+
+- derive default credentials from aws sdk ([#1629](https://github.com/conda/rattler/pull/1629))
+
+## [0.24.2](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.24.1...rattler_repodata_gateway-v0.24.2) - 2025-09-02
+
+### Other
+
+- updated the following local packages: rattler_conda_types, rattler_config, rattler_networking, rattler_package_streaming, rattler_cache
+
+## [0.24.1](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.24.0...rattler_repodata_gateway-v0.24.1) - 2025-08-15
+
+### Other
+
+- updated the following local packages: coalesced_map, rattler_conda_types, rattler_config, rattler_networking, rattler_package_streaming, rattler_cache
+
+## [0.24.0](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.23.10...rattler_repodata_gateway-v0.24.0) - 2025-08-12
+
+### Added
+
+- *(gateway)* add method to ensure `run_exports.json` ([#1540](https://github.com/conda/rattler/pull/1540))
+
+## [0.23.10](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.23.9...rattler_repodata_gateway-v0.23.10) - 2025-07-28
+
+### Other
+
+- updated the following local packages: rattler_cache
+
+## [0.23.9](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.23.8...rattler_repodata_gateway-v0.23.9) - 2025-07-23
+
+### Fixed
+
+- indexing `extra-depends` ([#1546](https://github.com/conda/rattler/pull/1546))
+- use channel `subdir` instead of the one from the record ([#1543](https://github.com/conda/rattler/pull/1543))
+
+## [0.23.8](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.23.7...rattler_repodata_gateway-v0.23.8) - 2025-07-21
+
+### Other
+
+- bump rust 1.88.0 ([#1536](https://github.com/conda/rattler/pull/1536))
+
+## [0.23.7](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.23.6...rattler_repodata_gateway-v0.23.7) - 2025-07-14
+
+### Other
+
+- updated the following local packages: rattler_conda_types, rattler_config, rattler_networking, rattler_cache
+
+## [0.23.6](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.23.5...rattler_repodata_gateway-v0.23.6) - 2025-07-09
+
+### Added
+
+- implement config conversion for repodata_gateway ([#1498](https://github.com/conda/rattler/pull/1498))
+
+## [0.23.5](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.23.4...rattler_repodata_gateway-v0.23.5) - 2025-07-01
+
+### Added
+
+- set default User-Agent if not provided ([#1468](https://github.com/conda/rattler/pull/1468))
+
+### Fixed
+
+- *(ci)* run pre-commit-run for all files ([#1481](https://github.com/conda/rattler/pull/1481))
+
+## [0.23.4](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.23.3...rattler_repodata_gateway-v0.23.4) - 2025-06-26
+
+### Other
+
+- updated the following local packages: rattler_conda_types, rattler_networking, rattler_cache
+
+## [0.23.3](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.23.2...rattler_repodata_gateway-v0.23.3) - 2025-06-25
+
+### Other
+
+- updated the following local packages: rattler_conda_types, rattler_networking, rattler_cache
+
+## [0.23.2](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.23.1...rattler_repodata_gateway-v0.23.2) - 2025-06-24
+
+### Other
+
+- update Cargo.toml dependencies
+
+## [0.23.1](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.23.0...rattler_repodata_gateway-v0.23.1) - 2025-06-23
+
+### Fixed
+
+- end progress sharded repodata ([#1375](https://github.com/conda/rattler/pull/1375))
+
+### Other
+
+- update npm name ([#1368](https://github.com/conda/rattler/pull/1368))
+- update readme ([#1364](https://github.com/conda/rattler/pull/1364))
+
+## [0.23.0](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.22.7...rattler_repodata_gateway-v0.23.0) - 2025-05-23
+
+### Added
+
+- *(py)* query based on matchspec and package count ([#1347](https://github.com/conda/rattler/pull/1347))
+- control over selection of .conda and .tar.bz2 ([#1344](https://github.com/conda/rattler/pull/1344))
+
+### Fixed
+
+- *(py)* package count was incorrect for prefer-conda ([#1350](https://github.com/conda/rattler/pull/1350))
+- properly dedup package names ([#1342](https://github.com/conda/rattler/pull/1342))
+- consistent usage of rustls-tls / native-tls feature ([#1324](https://github.com/conda/rattler/pull/1324))
+
+## [0.22.7](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.22.6...rattler_repodata_gateway-v0.22.7) - 2025-05-16
+
+### Other
+
+- make sure that md5 also works as `CacheKey` ([#1293](https://github.com/conda/rattler/pull/1293))
+- Bump zip to 3.0.0 ([#1310](https://github.com/conda/rattler/pull/1310))
+
+## [0.22.6](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.22.5...rattler_repodata_gateway-v0.22.6) - 2025-05-03
+
+### Other
+
+- lock workspace member dependencies ([#1279](https://github.com/conda/rattler/pull/1279))
+
+## [0.22.5](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.22.4...rattler_repodata_gateway-v0.22.5) - 2025-04-10
+
+### Other
+
+- update Cargo.toml dependencies
+
+## [0.22.4](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.22.3...rattler_repodata_gateway-v0.22.4) - 2025-04-04
+
+### Added
+
+- more helpful error when failing to persist repodata ([#1220](https://github.com/conda/rattler/pull/1220))
+
+## [0.22.3](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.22.2...rattler_repodata_gateway-v0.22.3) - 2025-03-18
+
+### Added
+
+- allow to pass a semaphore for concurrency control ([#1169](https://github.com/conda/rattler/pull/1169))
+
+## [0.22.2](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.22.1...rattler_repodata_gateway-v0.22.2) - 2025-03-14
+
+### Other
+
+- updated the following local packages: rattler_conda_types, rattler_networking
+
+## [0.22.1](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.22.0...rattler_repodata_gateway-v0.22.1) - 2025-03-10
+
+### Other
+
+- update Cargo.toml dependencies
+
+## [0.22.0](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.40...rattler_repodata_gateway-v0.22.0) - 2025-03-04
+
+### Added
+
+- *(js)* compile `rattler_solve` and `rattler_repodata_gateway` ([#1108](https://github.com/conda/rattler/pull/1108))
+
+## [0.21.40](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.39...rattler_repodata_gateway-v0.21.40) - 2025-02-28
+
+### Other
+
+- update Cargo.toml dependencies
+
+## [0.21.39](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.38...rattler_repodata_gateway-v0.21.39) - 2025-02-27
+
+### Other
+
+- updated the following local packages: rattler_redaction, rattler_conda_types, rattler_networking
+
+## [0.21.38](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.37...rattler_repodata_gateway-v0.21.38) - 2025-02-25
+
+### Added
+
+- add run_exports cache (#1060)
+
+### Fixed
+
+- split matchspec on start of constraint (#1094)
+
+## [0.21.37](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.36...rattler_repodata_gateway-v0.21.37) - 2025-02-18
+
+### Other
+
+- update Cargo.toml dependencies
+
+## [0.21.36](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.35...rattler_repodata_gateway-v0.21.36) - 2025-02-06
+
+### Other
+
+- bump rust 1.84.1 (#1053)
+
+## [0.21.35](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.34...rattler_repodata_gateway-v0.21.35) - 2025-02-06
+
+### Other
+
+- updated the following local packages: rattler_networking
+
+## [0.21.34](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.33...rattler_repodata_gateway-v0.21.34) - 2025-02-03
+
+### Added
+
+- add S3 support (#1008)
+
+## [0.21.33](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.32...rattler_repodata_gateway-v0.21.33) - 2025-01-23
+
+### Other
+
+- Improve AuthenticationStorage (#1026)
+
+## [0.21.32](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.31...rattler_repodata_gateway-v0.21.32) - 2025-01-09
+
+### Other
+
+- updated the following local packages: rattler_conda_types
+
+## [0.21.31](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.30...rattler_repodata_gateway-v0.21.31) - 2025-01-09
+
+### Other
+
+- updated the following local packages: rattler_conda_types
+
+## [0.21.30](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.29...rattler_repodata_gateway-v0.21.30) - 2025-01-08
+
+### Fixed
+
+- retry failed repodata streaming on io error (#1017)
+
+## [0.21.29](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.28...rattler_repodata_gateway-v0.21.29) - 2024-12-20
+
+### Other
+
+- updated the following local packages: rattler_cache, rattler_conda_types
+
+## [0.21.28](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.27...rattler_repodata_gateway-v0.21.28) - 2024-12-17
+
+### Other
+
+- update Cargo.toml dependencies
+
+## [0.21.27](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.26...rattler_repodata_gateway-v0.21.27) - 2024-12-13
+
+### Other
+
+- updated the following local packages: rattler_conda_types
+
+## [0.21.26](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.25...rattler_repodata_gateway-v0.21.26) - 2024-12-12
+
+### Other
+- updated the following local packages: rattler_cache, rattler_conda_types
+
+## [0.21.25](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.24...rattler_repodata_gateway-v0.21.25) - 2024-12-05
+
+### Other
+
+- updated the following local packages: rattler_networking
+
+## [0.21.24](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.23...rattler_repodata_gateway-v0.21.24) - 2024-11-30
+
+### Added
+
+- use `fs-err` also for tokio ([#958](https://github.com/conda/rattler/pull/958))
+
+## [0.21.23](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.22...rattler_repodata_gateway-v0.21.23) - 2024-11-18
+
+### Other
+
+- updated the following local packages: rattler_networking
+
+## [0.21.22](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.21...rattler_repodata_gateway-v0.21.22) - 2024-11-18
+
+### Other
+
+- updated the following local packages: rattler_conda_types
+
+## [0.21.21](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.20...rattler_repodata_gateway-v0.21.21) - 2024-11-14
+
+### Other
+
+- enable using sharded repodata for custom channels ([#910](https://github.com/conda/rattler/pull/910))
+
+## [0.21.20](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.19...rattler_repodata_gateway-v0.21.20) - 2024-11-05
+
+### Fixed
+
+- gateway recursive records ([#930](https://github.com/conda/rattler/pull/930))
+
+## [0.21.19](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.18...rattler_repodata_gateway-v0.21.19) - 2024-11-04
+
+### Other
+
+- update Cargo.toml dependencies
+
+## [0.21.18](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.17...rattler_repodata_gateway-v0.21.18) - 2024-10-21
+
+### Other
+
+- updated the following local packages: file_url, rattler_cache
+
+## [0.21.17](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.16...rattler_repodata_gateway-v0.21.17) - 2024-10-07
+
+### Other
+
+- stream JLAP repodata writes ([#891](https://github.com/conda/rattler/pull/891))
+
+## [0.21.16](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.15...rattler_repodata_gateway-v0.21.16) - 2024-10-03
+
+### Other
+
+- updated the following local packages: rattler_conda_types
+
+## [0.21.15](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.14...rattler_repodata_gateway-v0.21.15) - 2024-10-01
+
+### Other
+
+- start using fs-err in repodata_gateway ([#877](https://github.com/conda/rattler/pull/877))
+
+## [0.21.14](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.13...rattler_repodata_gateway-v0.21.14) - 2024-09-23
+
+### Other
+
+- updated the following local packages: rattler_conda_types
+
+## [0.21.13](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.12...rattler_repodata_gateway-v0.21.13) - 2024-09-09
+
+### Other
+
+- updated the following local packages: rattler_conda_types
+
+## [0.21.12](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.11...rattler_repodata_gateway-v0.21.12) - 2024-09-05
+
+### Fixed
+- *(gateway)* clear subdir cache based on `base_url` ([#852](https://github.com/conda/rattler/pull/852))
+- typos ([#849](https://github.com/conda/rattler/pull/849))
+
+## [0.21.11](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.10...rattler_repodata_gateway-v0.21.11) - 2024-09-03
+
+### Fixed
+- allow `gcs://` and `oci://` in gateway ([#845](https://github.com/conda/rattler/pull/845))
+
+## [0.21.10](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.9...rattler_repodata_gateway-v0.21.10) - 2024-09-03
+
+### Other
+- make PackageCache multi-process safe ([#837](https://github.com/conda/rattler/pull/837))
+
+## [0.21.9](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.8...rattler_repodata_gateway-v0.21.9) - 2024-09-02
+
+### Other
+- updated the following local packages: rattler_conda_types
+
+## [0.21.8](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.7...rattler_repodata_gateway-v0.21.8) - 2024-08-16
+
+### Other
+- updated the following local packages: rattler_networking
+
+## [0.21.7](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.6...rattler_repodata_gateway-v0.21.7) - 2024-08-16
+
+### Added
+- add package names api for gateway ([#819](https://github.com/conda/rattler/pull/819))
+
+## [0.21.6](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.5...rattler_repodata_gateway-v0.21.6) - 2024-08-15
+
+### Fixed
+- move more links to the conda org from conda-incubator ([#816](https://github.com/conda/rattler/pull/816))
+
+### Other
+- change links from conda-incubator to conda ([#813](https://github.com/conda/rattler/pull/813))
+- update banner ([#808](https://github.com/conda/rattler/pull/808))
+
+## [0.21.5](https://github.com/baszalmstra/rattler/compare/rattler_repodata_gateway-v0.21.4...rattler_repodata_gateway-v0.21.5) - 2024-08-06
+
+### Other
+- updated the following local packages: rattler_conda_types
+
+## [0.21.4](https://github.com/baszalmstra/rattler/compare/rattler_repodata_gateway-v0.21.3...rattler_repodata_gateway-v0.21.4) - 2024-08-02
+
+### Fixed
+- redact secrets in the `canonical_name` functions ([#801](https://github.com/baszalmstra/rattler/pull/801))
+
+### Other
+- mark some crates 1.0 ([#789](https://github.com/baszalmstra/rattler/pull/789))
+
+## [0.21.3](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.2...rattler_repodata_gateway-v0.21.3) - 2024-07-23
+
+### Other
+- updated the following local packages: rattler_conda_types
+
+## [0.21.2](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.1...rattler_repodata_gateway-v0.21.2) - 2024-07-23
+
+### Other
+- updated the following local packages: rattler_conda_types
+
+## [0.21.1](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.21.0...rattler_repodata_gateway-v0.21.1) - 2024-07-15
+
+### Other
+- bump dependencies and remove unused ones ([#771](https://github.com/conda/rattler/pull/771))
+
+## [0.21.0](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.20.5...rattler_repodata_gateway-v0.21.0) - 2024-07-08
+
+### Added
+- improve error message when parsing file name ([#757](https://github.com/conda/rattler/pull/757))
+- add direct url repodata building ([#725](https://github.com/conda/rattler/pull/725))
+- add shards_base_url and write shards atomically ([#747](https://github.com/conda/rattler/pull/747))
+
+### Fixed
+- direct_url query for windows ([#768](https://github.com/conda/rattler/pull/768))
+- Fix GatewayQuery.query to filter records based on provided specs ([#756](https://github.com/conda/rattler/pull/756))
+- run clippy on all targets ([#762](https://github.com/conda/rattler/pull/762))
+- allow empty json repodata ([#745](https://github.com/conda/rattler/pull/745))
+
+### Other
+- document gateway features ([#737](https://github.com/conda/rattler/pull/737))
+
+## [0.20.5](https://github.com/baszalmstra/rattler/compare/rattler_repodata_gateway-v0.20.4...rattler_repodata_gateway-v0.20.5) - 2024-06-04
+
+### Other
+- remove lfs ([#512](https://github.com/baszalmstra/rattler/pull/512))
+
+## [0.20.4](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.20.3...rattler_repodata_gateway-v0.20.4) - 2024-06-03
+
+### Other
+- updated the following local packages: rattler_conda_types, rattler_conda_types
+
+## [0.20.3](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.20.2...rattler_repodata_gateway-v0.20.3) - 2024-05-28
+
+### Other
+- updated the following local packages: rattler_conda_types, rattler_conda_types
+
+## [0.20.2](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.20.1...rattler_repodata_gateway-v0.20.2) - 2024-05-27
+
+### Fixed
+- result grouped by subdir instead of channel ([#666](https://github.com/conda/rattler/pull/666))
+
+### Other
+- introducing the installer ([#664](https://github.com/conda/rattler/pull/664))
+
+## [0.20.1](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.20.0...rattler_repodata_gateway-v0.20.1) - 2024-05-14
+
+### Added
+- exclude repodata records based on timestamp ([#654](https://github.com/conda/rattler/pull/654))
+
+## [0.20.0](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.19.11...rattler_repodata_gateway-v0.20.0) - 2024-05-13
+
+### Added
+- add clear subdir cache function to repodata gateway ([#650](https://github.com/conda/rattler/pull/650))
+- high level repodata access ([#560](https://github.com/conda/rattler/pull/560))
+
+### Other
+- update README.md
+
+## [0.19.11](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.19.10...rattler_repodata_gateway-v0.19.11) - 2024-05-06
+
+### Other
+- updated the following local packages: rattler_conda_types, rattler_networking
+
+## [0.19.10](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.19.9...rattler_repodata_gateway-v0.19.10) - 2024-04-30
+
+### Added
+- create SparseRepoData from byte slices ([#624](https://github.com/conda/rattler/pull/624))
+
+## [0.19.9](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.19.8...rattler_repodata_gateway-v0.19.9) - 2024-04-25
+
+### Other
+- updated the following local packages: rattler_networking
+
+## [0.19.8](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.19.7...rattler_repodata_gateway-v0.19.8) - 2024-04-25
+
+### Other
+- updated the following local packages: rattler_conda_types
+
+## [0.19.7](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.19.6...rattler_repodata_gateway-v0.19.7) - 2024-04-19
+
+### Added
+- make root dir configurable in channel config ([#602](https://github.com/conda/rattler/pull/602))
+
+### Other
+- update dependencies incl. reqwest ([#606](https://github.com/conda/rattler/pull/606))
+
+## [0.19.6](https://github.com/baszalmstra/rattler/compare/rattler_repodata_gateway-v0.19.5...rattler_repodata_gateway-v0.19.6) - 2024-04-05
+
+### Other
+- updated the following local packages: rattler_conda_types, rattler_networking
+
+## [0.19.5](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.19.4...rattler_repodata_gateway-v0.19.5) - 2024-03-30
+
+### Other
+- updated the following local packages: rattler_conda_types
+
+## [0.19.4](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.19.3...rattler_repodata_gateway-v0.19.4) - 2024-03-21
+
+### Other
+- updated the following local packages: rattler_conda_types, rattler_networking
+
+## [0.19.3](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.19.2...rattler_repodata_gateway-v0.19.3) - 2024-03-14
+
+### Other
+- add pixi badge ([#563](https://github.com/conda/rattler/pull/563))
+
+## [0.19.2](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.19.1...rattler_repodata_gateway-v0.19.2) - 2024-03-08
+
+### Fixed
+- chrono deprecation warnings ([#558](https://github.com/conda/rattler/pull/558))
+
+## [0.19.1](https://github.com/conda/rattler/compare/rattler_repodata_gateway-v0.19.0...rattler_repodata_gateway-v0.19.1) - 2024-03-06
+
+### Fixed
+- correct condition to downweigh track-feature packages ([#545](https://github.com/conda/rattler/pull/545))
+- dont use workspace dependencies for local crates ([#546](https://github.com/conda/rattler/pull/546))
+
+### Other
+- every crate should have its own version ([#557](https://github.com/conda/rattler/pull/557))
+
+## [0.19.0](https://github.com/baszalmstra/rattler/compare/rattler_repodata_gateway-v0.18.0...rattler_repodata_gateway-v0.19.0) - 2024-02-26

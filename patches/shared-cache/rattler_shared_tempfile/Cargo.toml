@@ -1,0 +1,10 @@
+[package]
+name = "rattler_shared_tempfile"
+version = "0.1.0"
+edition = "2024"
+description = "Create temporary files that are renamed into directories shared with other users (from conda/rattler#2950)"
+license = "BSD-3-Clause"
+publish = false
+
+[dependencies]
+tempfile = "3.8"
